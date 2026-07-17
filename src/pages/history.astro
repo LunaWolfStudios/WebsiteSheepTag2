@@ -1,0 +1,56 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { Image } from "astro:assets";
+import historyImg from "../../history/SheepTag_History.png";
+---
+
+<BaseLayout title="History — Sheep Tag 2" description="A look back at the history of Sheep Tag.">
+  <section class="wrap history">
+    <h1>A Bit of History</h1>
+    <p class="intro">
+      Sheep Tag began as a beloved custom game mode played by countless people across many
+      communities and servers — the West, the <a href="/history/east.html" class="egg">East</a>,
+      and everywhere in between. Sheep Tag 2 carries that legacy forward.
+    </p>
+    <figure>
+      <Image
+        src={historyImg}
+        alt="Illustrated history of Sheep Tag"
+        class="history-img"
+        widths={[400, 680]}
+        sizes="(max-width: 760px) 100vw, 680px"
+      />
+    </figure>
+  </section>
+</BaseLayout>
+
+<style>
+  .history {
+    max-width: 760px;
+    padding-block: clamp(1.5rem, 4vw, 3rem) 4rem;
+  }
+  .history h1 {
+    font-size: clamp(2rem, 1.4rem + 2.5vw, 3rem);
+  }
+  .intro {
+    color: var(--st-ink-muted);
+    margin: 0.6rem 0 2rem;
+    max-width: 62ch;
+    line-height: 1.75;
+  }
+  /* Easter egg — deliberately indistinguishable from normal text. */
+  .egg {
+    color: inherit;
+    text-decoration: none;
+    cursor: text;
+  }
+  figure {
+    margin: 0;
+  }
+  .history-img {
+    width: 100%;
+    height: auto;
+    border-radius: var(--st-radius-lg);
+    border: 1px solid var(--st-border);
+  }
+</style>

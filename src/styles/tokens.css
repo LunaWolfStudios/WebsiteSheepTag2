@@ -1,0 +1,44 @@
+/* Sheep Tag 2 — design tokens (dark theme; WEBSITE_PROPOSAL.md §5.1) */
+:root {
+  /* Surfaces (dark, green-tinted) */
+  --st-bg: #15180f;
+  --st-bg-2: #1c2114;
+  --st-surface: #222819;
+  --st-surface-hover: #2b331f;
+  --st-border: #3b4630;
+
+  /* Ink */
+  --st-ink: #f4efe1;
+  --st-ink-muted: #b7c0a4;
+  --st-ink-subtle: #8a9478;
+
+  /* Brand */
+  --st-green: #6fbf3e;
+  --st-green-bright: #8fd85c;
+  --st-green-deep: #3e6b2c;
+  --st-gold: #f5c542;
+  --st-gold-deep: #e0a32e;
+  --st-sky: #9bd6f2;
+  --st-wood: #7a5230;
+  --st-mushroom: #d45b4e;
+
+  /* Semantic */
+  --st-cta: var(--st-gold);
+  --st-cta-ink: #1b1b12;
+  --st-accent: var(--st-green);
+
+  /* Shape & depth */
+  --st-radius: 14px;
+  --st-radius-lg: 22px;
+  --st-radius-pill: 999px;
+  --st-shadow: 0 6px 24px rgba(0, 0, 0, 0.35);
+  --st-shadow-lg: 0 14px 44px rgba(0, 0, 0, 0.5);
+  --st-maxw: 1200px;
+
+  /* Type */
+  --font-display: "Fredoka", ui-rounded, "Segoe UI", system-ui, sans-serif;
+  --font-body: "Nunito Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  /* Header */
+  --st-header-h: 62px;
+}

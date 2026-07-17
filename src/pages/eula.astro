@@ -1,0 +1,11 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import "../styles/legal.css";
+import html from "../../eula.html?raw";
+---
+
+<BaseLayout title="EULA — Sheep Tag 2" description="End-User License Agreement for Sheep Tag 2.">
+  <section class="wrap legal">
+    <Fragment set:html={html} />
+  </section>
+</BaseLayout>

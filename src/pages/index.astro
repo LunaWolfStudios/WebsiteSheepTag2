@@ -1,0 +1,31 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import Hero from "../components/Hero.astro";
+import { SITE } from "../data/site";
+import { LINKS } from "../data/links";
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "VideoGame",
+  name: SITE.name,
+  description: SITE.fullDescription,
+  url: SITE.url,
+  image: new URL(SITE.ogImage, SITE.url).href,
+  genre: ["Strategy", "Survival", "Multiplayer"],
+  gamePlatform: "PC",
+  playMode: "MultiPlayer",
+  publisher: { "@type": "Organization", name: SITE.publisher },
+  author: { "@type": "Organization", name: SITE.publisher },
+  sameAs: [LINKS.steam, LINKS.discord, LINKS.kickstarter, LINKS.x, LINKS.youtube],
+};
+---
+
+<BaseLayout>
+  <script
+    type="application/ld+json"
+    slot="head"
+    is:inline
+    set:html={JSON.stringify(jsonLd)}
+  />
+  <Hero />
+</BaseLayout>

@@ -1,0 +1,11 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import "../styles/legal.css";
+import html from "../../privacy.html?raw";
+---
+
+<BaseLayout title="Privacy Policy — Sheep Tag 2" description="Privacy Policy for Sheep Tag 2.">
+  <section class="wrap legal">
+    <Fragment set:html={html} />
+  </section>
+</BaseLayout>

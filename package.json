@@ -1,0 +1,26 @@
+{
+  "name": "sheeptag2-website",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "prebuild": "tsx scripts/build.mts",
+    "predev": "tsx scripts/build.mts",
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "check": "tsx scripts/build.mts && astro check"
+  },
+  "dependencies": {
+    "@astrojs/sitemap": "^3.7.3",
+    "@fontsource/fredoka": "^5.2.10",
+    "@fontsource/nunito-sans": "^5.2.7",
+    "astro": "^7.0.9"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.9",
+    "simple-icons": "^16.26.0",
+    "tsx": "^4.23.1",
+    "typescript": "^6.0.3"
+  }
+}

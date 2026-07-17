@@ -1,0 +1,32 @@
+Sheep Tag 2 Content Library — Licensing Overview
+================================================
+
+This repository contains two kinds of content, under two different licenses.
+
+1. Community terrains  —  CC BY 4.0
+-----------------------------------
+The terrain files in the "terrains/" directory (the *.json files and their
+embedded preview images) are licensed under the Creative Commons Attribution
+4.0 International License (CC BY 4.0). You are free to share and adapt them,
+including commercially, as long as you credit the original author (see each
+file's "Metadata.Author"). Full terms: terrains/LICENSE and
+https://creativecommons.org/licenses/by/4.0/
+
+2. Everything else  —  © Luna Wolf Studios LLC, all rights reserved
+-------------------------------------------------------------------
+All other content in this repository is the proprietary property of
+Luna Wolf Studios LLC, Copyright (c) 2017-2026, all rights reserved. This
+includes, without limitation:
+  - the website source code and configuration;
+  - all Sheep Tag 2 artwork, logos, icons, backgrounds, farm art, screenshots,
+    and other images (e.g. logos/, icons/, farms/, socials/, history/);
+  - the site text and legal documents.
+This material may not be copied, modified, redistributed, or used to create
+derivative works without the prior written permission of Luna Wolf Studios LLC.
+
+Contributions
+-------------
+By submitting a terrain to this repository, you confirm it is your original
+work and agree to license it under CC BY 4.0.
+
+Questions: support@lunawolfstudios.com

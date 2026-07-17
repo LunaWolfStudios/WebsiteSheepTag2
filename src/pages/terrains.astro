@@ -1,0 +1,722 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import Icon from "../components/Icon.astro";
+import { LINKS } from "../data/links";
+import manifest from "../data/terrains.json";
+
+interface Terrain {
+  slug: string;
+  name: string;
+  author: string;
+  version: string;
+  description: string;
+  size: string;
+  thumb: string | null;
+  download: string;
+  file: string;
+  bytes: number;
+  fileSize: string;
+}
+const terrains = manifest.terrains as Terrain[];
+
+// Embed the manifest for the client (escape "<" so a terrain description can't break the tag).
+const dataJson = JSON.stringify(terrains).replace(/</g, "\\u003c");
+
+// Distinct map sizes for the filter, smallest first (e.g. 32×32 … 160×160).
+const sizeOptions = [...new Set(terrains.map((t) => t.size).filter(Boolean))].sort(
+  (a, b) => parseInt(a) - parseInt(b),
+);
+
+const osPaths = [
+  { os: "windows", name: "Windows", path: "%USERPROFILE%\\AppData\\LocalLow\\Luna Wolf Studios\\Sheep Tag 2\\Custom\\" },
+  { os: "macos", name: "macOS", icon: "apple", path: "~/Library/Application Support/Luna Wolf Studios/Sheep Tag 2/Custom/" },
+  { os: "linux", name: "Linux", path: "~/.config/unity3d/Luna Wolf Studios/Sheep Tag 2/Custom/" },
+];
+---
+
+<BaseLayout
+  title="Community Terrains — Sheep Tag 2"
+  description="Create and share custom maps for Sheep Tag 2 with the built-in level editor — then browse, download, and play what the community has made."
+>
+  <section class="wrap terrains">
+    <header class="terrains-head">
+      <div>
+        <h1>Community Terrains</h1>
+        <p class="sub">
+          Sheep Tag 2 has a built-in level editor — because we're map-makers too. Design your own
+          battlegrounds and share them with everyone, or download a community creation to play.
+          <span class="count-line"><span id="terrain-count">{terrains.length}</span> terrains and counting.</span>
+        </p>
+      </div>
+      <div class="terrains-actions">
+        <button type="button" id="help-btn" class="btn btn--secondary btn--sm">
+          <Icon name="help" size={18} /> Help
+        </button>
+        <a href={LINKS.submitPage} class="btn btn--primary btn--sm">
+          <Icon name="upload" size={18} /> Share a Terrain
+        </a>
+      </div>
+    </header>
+
+    <div class="terrains-toolbar">
+      <div class="search-field">
+        <Icon name="search" size={18} />
+        <input
+          type="search"
+          id="terrain-search"
+          placeholder="Search terrains or authors…"
+          aria-label="Search terrains"
+          autocomplete="off"
+        />
+      </div>
+      <div class="view-toggle" role="group" aria-label="View mode">
+        <button type="button" id="btn-grid" class="vt-btn is-active" aria-pressed="true">
+          <Icon name="grid" size={16} /> <span>Grid</span>
+        </button>
+        <button type="button" id="btn-list" class="vt-btn" aria-pressed="false">
+          <Icon name="list" size={16} /> <span>List</span>
+        </button>
+      </div>
+      <label class="sel-field">
+        <span>Size</span>
+        <select id="terrain-size" aria-label="Filter by map size">
+          <option value="any" selected>Any size</option>
+          {sizeOptions.map((s) => <option value={s}>{s}</option>)}
+        </select>
+      </label>
+      <label class="sel-field">
+        <span>Sort</span>
+        <select id="terrain-sort" aria-label="Sort terrains">
+          <option value="name-asc">Name (A–Z)</option>
+          <option value="name-desc">Name (Z–A)</option>
+          <option value="author-asc">Author</option>
+          <option value="size-desc">Largest file</option>
+          <option value="size-asc">Smallest file</option>
+        </select>
+      </label>
+      <label class="sel-field">
+        <span>Per page</span>
+        <select id="terrain-perpage" aria-label="Terrains per page">
+          <option value="10">10</option>
+          <option value="25" selected>25</option>
+          <option value="50">50</option>
+          <option value="100">100</option>
+        </select>
+      </label>
+    </div>
+
+    <p id="terrain-results" class="results-note" role="status" hidden></p>
+
+    <p id="terrain-status" class="terrain-status" role="status" hidden></p>
+
+    <!-- SSR default (grid) view — also the no-JS fallback; the island re-renders this. -->
+    <div id="terrain-view" class="terrain-view view-grid">
+      {
+        terrains.map((t) => (
+          <article class="tcard" data-slug={t.slug}>
+            <div class="tcard-thumb">
+              {t.thumb ? (
+                <img src={t.thumb} alt={`${t.name} map preview`} width="96" height="96" loading="lazy" />
+              ) : (
+                <span class="noimg" aria-hidden="true" />
+              )}
+            </div>
+            <div class="tcard-body">
+              <div class="tcard-top">
+                <a class="tcard-dl" href={t.download} download target="_self" aria-label={`Download ${t.name}`}>
+                  <Icon name="download" size={16} />
+                </a>
+                <h3 class="tcard-name">{t.name}</h3>
+              </div>
+              <p class="tcard-by">by {t.author}</p>
+              <div class="tcard-badges">
+                {t.size && <span class="badge">{t.size}</span>}
+                {t.version && <span class="badge badge--gold">v{t.version}</span>}
+              </div>
+            </div>
+          </article>
+        ))
+      }
+    </div>
+
+    <nav id="terrain-pager" class="pager" aria-label="Terrain pages" hidden></nav>
+
+    <p class="cc-note">
+      Terrains are shared under&#32;<a
+        href="https://creativecommons.org/licenses/by/4.0/"
+        target="_blank"
+        rel="noopener"
+      >CC BY 4.0</a>&#32;&mdash; please credit the author.
+    </p>
+  </section>
+
+  <script type="application/json" id="terrain-data" is:inline set:html={dataJson} />
+
+  <!-- Terrain detail -->
+  <dialog id="detail-dialog" class="detail-dialog" aria-labelledby="detail-name">
+    <div class="detail-inner">
+      <button type="button" class="icon-close" id="detail-close" aria-label="Close">
+        <Icon name="close" size={24} />
+      </button>
+      <div class="detail-grid">
+        <div class="detail-media"><img id="detail-img" alt="" /></div>
+        <div class="detail-info">
+          <h2 id="detail-name"></h2>
+          <p class="detail-by" id="detail-by"></p>
+          <div class="detail-badges" id="detail-badges"></div>
+          <p class="detail-desc" id="detail-desc"></p>
+          <div class="detail-foot">
+            <a class="btn btn--primary" id="detail-dl" download target="_self">
+              <Icon name="download" size={18} /> Download
+            </a>
+            <span class="detail-filesize" id="detail-filesize"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Where to place downloaded terrains -->
+  <dialog id="help-dialog" class="help-dialog" aria-label="Where to place downloaded terrains">
+    <div class="help-inner">
+      <button type="button" class="icon-close" id="help-close" aria-label="Close help">
+        <Icon name="close" size={24} />
+      </button>
+      <h2>Where do I put downloaded terrains?</h2>
+      <p>Place downloaded terrain <code>.json</code> files in your Sheep Tag 2 custom data folder (it differs per operating system):</p>
+      <ul class="os-list">
+        {
+          osPaths.map((p) => (
+            <li class="os-row" data-os={p.os}>
+              <span class="os-ico"><Icon name={p.icon ?? p.os} size={22} /></span>
+              <div class="os-body">
+                <span class="os-name">{p.name}</span>
+                <code class="os-path">{p.path}</code>
+              </div>
+              <button type="button" class="btn btn--sm copy-btn" data-copy={p.path}>Copy</button>
+            </li>
+          ))
+        }
+      </ul>
+      <p class="help-tip">
+        Tip: on Windows the <code>AppData</code> folder and on macOS the <code>Library</code> folder are
+        hidden by default — you may need to enable “show hidden files.”
+      </p>
+    </div>
+  </dialog>
+</BaseLayout>
+
+{/* Global (unscoped) on purpose: the island builds cards/rows/pager buttons at runtime,
+    and Astro-scoped styles would not match JS-created elements. */}
+<style is:global>
+  .terrains {
+    padding-block: clamp(1.5rem, 4vw, 3rem) 4rem;
+  }
+  .terrains-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  .terrains-head h1 {
+    font-size: clamp(2rem, 1.4rem + 2.5vw, 3rem);
+  }
+  .terrains-head .sub {
+    color: var(--st-ink-muted);
+    margin-top: 0.4rem;
+    max-width: 64ch;
+    line-height: 1.6;
+  }
+  .count-line {
+    display: block;
+    margin-top: 0.4rem;
+    color: var(--st-green-bright);
+    font-weight: 600;
+  }
+  .terrains-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-shrink: 0;
+  }
+
+  .terrains-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: center;
+    margin-bottom: 1.5rem;
+  }
+  .search-field {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex: 1 1 220px;
+    padding: 0.5rem 0.9rem;
+    background: var(--st-surface);
+    border: 1px solid var(--st-border);
+    border-radius: var(--st-radius-pill);
+    color: var(--st-ink-subtle);
+  }
+  .search-field input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    color: var(--st-ink);
+    font: inherit;
+    outline: none;
+    min-width: 0;
+  }
+  .view-toggle {
+    display: inline-flex;
+    background: var(--st-surface);
+    border: 1px solid var(--st-border);
+    border-radius: 10px;
+    padding: 2px;
+  }
+  .vt-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4em;
+    font: inherit;
+    font-size: 0.9rem;
+    padding: 0.4em 0.8em;
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--st-ink-muted);
+    cursor: pointer;
+    transition: background-color 0.15s ease, color 0.15s ease;
+  }
+  .vt-btn.is-active {
+    background: var(--st-green-deep);
+    color: var(--st-ink);
+  }
+  .sel-field {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--st-ink-muted);
+    font-size: 0.9rem;
+  }
+  .sel-field select {
+    font: inherit;
+    color: var(--st-ink);
+    background: var(--st-surface);
+    border: 1px solid var(--st-border);
+    border-radius: 10px;
+    padding: 0.5rem 0.7rem;
+    transition: border-color 0.15s ease;
+  }
+  .sel-field select:hover {
+    border-color: var(--st-green);
+  }
+  .results-note {
+    margin: -0.9rem 0 1.2rem 0.35rem;
+    font-size: 0.84rem;
+    color: var(--st-ink-subtle);
+  }
+  .terrain-status {
+    color: var(--st-ink-muted);
+    padding: 2rem 0;
+    text-align: center;
+  }
+
+  /* Grid view (cards) */
+  .terrain-view.view-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1rem;
+  }
+  .tcard {
+    display: grid;
+    grid-template-columns: 96px 1fr;
+    gap: 1rem;
+    align-items: center;
+    padding: 1rem;
+    background: var(--st-surface);
+    border: 1px solid var(--st-border);
+    border-radius: var(--st-radius-lg);
+    box-shadow: var(--st-shadow);
+    cursor: pointer;
+    transition: transform 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease;
+    animation: tcard-in 0.35s cubic-bezier(0.18, 0.8, 0.3, 1) backwards;
+  }
+  .tcard:hover {
+    border-color: color-mix(in srgb, var(--st-green) 60%, var(--st-border));
+    transform: translateY(-3px) scale(1.015);
+    box-shadow: var(--st-shadow-lg);
+  }
+  .tcard:active {
+    transform: translateY(-1px) scale(0.985);
+  }
+  @keyframes tcard-in {
+    from {
+      opacity: 0;
+      transform: translateY(12px) scale(0.97);
+    }
+  }
+  .tcard-thumb {
+    width: 96px;
+    height: 96px;
+    border-radius: 12px;
+    overflow: hidden;
+    background: var(--st-bg-2);
+  }
+  .tcard-thumb img,
+  .tcard-thumb .noimg {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.25s ease;
+  }
+  .tcard:hover .tcard-thumb img {
+    transform: scale(1.08);
+  }
+  .tcard-body {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+  .tcard-top {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    min-width: 0;
+  }
+  .tcard-dl {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    color: var(--st-ink-muted);
+    background: var(--st-bg-2);
+    border: 1px solid var(--st-border);
+    transition: background-color 0.12s ease, color 0.12s ease, transform 0.12s ease;
+  }
+  .tcard-dl:hover {
+    background: var(--st-gold);
+    border-color: var(--st-gold);
+    color: var(--st-cta-ink);
+    transform: scale(1.12);
+  }
+  .tcard-name {
+    font-size: 1.12rem;
+    line-height: 1.2;
+    overflow-wrap: anywhere;
+    min-width: 0;
+  }
+  .tcard-by {
+    color: var(--st-ink-muted);
+    font-size: 0.88rem;
+  }
+  .tcard-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+  }
+
+  /* List view (table) — columns flex to fill the full width */
+  .terrain-view.view-list {
+    display: block;
+    overflow-x: auto;
+  }
+  .terrain-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    background: var(--st-surface);
+    border: 1px solid var(--st-border);
+    border-radius: var(--st-radius);
+    overflow: hidden;
+  }
+  .terrain-table th,
+  .terrain-table td {
+    text-align: left;
+    padding: 0.6rem 0.9rem;
+    border-bottom: 1px solid var(--st-border);
+  }
+  .terrain-table tr:last-child td {
+    border-bottom: none;
+  }
+  .terrain-table th {
+    font-family: var(--font-display);
+    font-size: 0.82rem;
+    color: var(--st-ink-subtle);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    white-space: nowrap;
+  }
+  .terrain-table .col-thumb {
+    width: 64px;
+  }
+  .terrain-table .t-name {
+    width: 42%;
+    font-weight: 600;
+  }
+  .terrain-table .t-author {
+    width: 30%;
+    color: var(--st-ink-muted);
+  }
+  .terrain-table .t-size,
+  .terrain-table .t-ver {
+    white-space: nowrap;
+    color: var(--st-ink-muted);
+  }
+  .terrain-table tbody tr {
+    cursor: pointer;
+    transition: background-color 0.12s ease;
+    animation: trow-in 0.3s ease backwards;
+  }
+  .terrain-table tbody tr:hover {
+    background: var(--st-surface-hover);
+  }
+  .terrain-table tbody tr:hover .t-name {
+    color: var(--st-green-bright);
+  }
+  @keyframes trow-in {
+    from {
+      opacity: 0;
+      transform: translateX(-8px);
+    }
+  }
+  .terrain-table .col-thumb img {
+    width: 44px;
+    height: 44px;
+    border-radius: 8px;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.2s ease;
+  }
+  .terrain-table tbody tr:hover .col-thumb img {
+    transform: scale(1.12);
+  }
+
+  .pager {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.35rem;
+    margin-top: 2rem;
+  }
+  .pager button {
+    min-width: 40px;
+    height: 40px;
+    padding: 0 0.6rem;
+    border: 1px solid var(--st-border);
+    background: var(--st-surface);
+    color: var(--st-ink);
+    border-radius: 10px;
+    font: inherit;
+    cursor: pointer;
+    transition: border-color 0.12s ease, background-color 0.12s ease, transform 0.12s ease;
+  }
+  .pager button:hover:not(:disabled) {
+    border-color: var(--st-green);
+    transform: translateY(-1px);
+  }
+  .pager button[aria-current="true"] {
+    background: var(--st-green-deep);
+    border-color: var(--st-green);
+  }
+  .pager button:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+
+  .cc-note {
+    margin-top: 2rem;
+    color: var(--st-ink-subtle);
+    font-size: 0.85rem;
+    text-align: center;
+  }
+
+  /* Detail dialog */
+  .detail-dialog {
+    width: min(720px, 94vw);
+    border: 1px solid var(--st-border);
+    border-radius: var(--st-radius-lg);
+    background: var(--st-surface);
+    color: var(--st-ink);
+    padding: 0;
+  }
+  .detail-dialog::backdrop {
+    background: rgba(6, 8, 5, 0.8);
+    -webkit-backdrop-filter: blur(5px);
+    backdrop-filter: blur(5px);
+  }
+  .detail-inner {
+    position: relative;
+    padding: 1.5rem;
+  }
+  .detail-grid {
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    gap: 1.3rem;
+  }
+  .detail-media {
+    aspect-ratio: 1;
+    border-radius: var(--st-radius);
+    overflow: hidden;
+    background: var(--st-bg-2);
+  }
+  .detail-media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .detail-info {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  #detail-name {
+    font-size: 1.5rem;
+    padding-right: 2rem;
+  }
+  .detail-by {
+    color: var(--st-ink-muted);
+  }
+  .detail-badges {
+    display: flex;
+    gap: 0.4rem;
+  }
+  .detail-desc {
+    color: var(--st-ink-muted);
+    line-height: 1.6;
+    margin-top: 0.3rem;
+  }
+  .detail-foot {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    margin-top: auto;
+    padding-top: 0.8rem;
+  }
+  .detail-filesize {
+    color: var(--st-ink-subtle);
+    font-size: 0.85rem;
+  }
+
+  /* Shared dialog close + help dialog */
+  .icon-close {
+    position: absolute;
+    top: 0.8rem;
+    right: 0.8rem;
+    display: inline-flex;
+    width: 38px;
+    height: 38px;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--st-ink-muted);
+    cursor: pointer;
+    transition: background-color 0.12s ease, color 0.12s ease, transform 0.12s ease;
+  }
+  .icon-close:hover {
+    background: var(--st-surface-hover);
+    color: var(--st-ink);
+    transform: rotate(90deg);
+  }
+  .help-dialog {
+    width: min(560px, 92vw);
+    border: 1px solid var(--st-border);
+    border-radius: var(--st-radius-lg);
+    background: var(--st-surface);
+    color: var(--st-ink);
+    padding: 0;
+  }
+  .help-dialog::backdrop {
+    background: rgba(6, 8, 5, 0.7);
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
+  }
+  .help-inner {
+    position: relative;
+    padding: 1.6rem;
+  }
+  .help-inner h2 {
+    font-size: 1.3rem;
+    margin-bottom: 0.5rem;
+    padding-right: 2.5rem;
+  }
+  .os-list {
+    list-style: none;
+    padding: 0;
+    margin: 1rem 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+  .os-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.7rem;
+    border: 1px solid var(--st-border);
+    border-radius: 12px;
+    background: var(--st-bg-2);
+  }
+  .os-row.detected {
+    border-color: var(--st-green);
+    box-shadow: 0 0 0 1px var(--st-green-deep);
+  }
+  .os-ico {
+    color: var(--st-ink-muted);
+    flex-shrink: 0;
+  }
+  .os-body {
+    min-width: 0;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+  }
+  .os-name {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 0.9rem;
+  }
+  .os-path {
+    font-size: 0.78rem;
+    color: var(--st-ink-muted);
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+  .copy-btn {
+    flex-shrink: 0;
+  }
+  .help-tip {
+    font-size: 0.85rem;
+    color: var(--st-ink-subtle);
+  }
+
+  @media (max-width: 560px) {
+    .detail-grid {
+      grid-template-columns: 1fr;
+    }
+    .detail-media {
+      max-width: 220px;
+    }
+    .tcard {
+      grid-template-columns: 84px 1fr;
+    }
+    .tcard-thumb {
+      width: 84px;
+      height: 84px;
+    }
+  }
+</style>
+
+<script>
+  import "../scripts/terrain-browser.ts";
+</script>

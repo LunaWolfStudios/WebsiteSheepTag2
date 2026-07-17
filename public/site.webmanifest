@@ -1,0 +1,13 @@
+{
+  "name": "Sheep Tag 2",
+  "short_name": "Sheep Tag 2",
+  "description": "The classic cat-and-mouse game!",
+  "start_url": "/",
+  "display": "standalone",
+  "theme_color": "#15180f",
+  "background_color": "#15180f",
+  "icons": [
+    { "src": "/favicon-32.png", "sizes": "32x32", "type": "image/png" },
+    { "src": "/apple-touch-icon.png", "sizes": "96x96", "type": "image/png" }
+  ]
+}

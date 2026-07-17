@@ -1,0 +1,232 @@
+---
+import { Image } from "astro:assets";
+import farmIcon from "../../icons/SheepTag2_Icon_96x96.png";
+import { LINKS } from "../data/links";
+import Icon from "./Icon.astro";
+
+const path = Astro.url.pathname;
+const isActive = (href: string) =>
+  href === "/" ? path === "/" : path.startsWith(href);
+
+const internal = [
+  { href: "/", label: "Home" },
+  { href: "/terrains", label: "Terrains" },
+  { href: "/farms", label: "Farms" },
+];
+const external = [
+  { href: LINKS.kickstarter, label: "Kickstarter" },
+  { href: LINKS.soundtrack, label: "Soundtrack" },
+  { href: LINKS.discord, label: "Discord" },
+];
+---
+
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a href="/" class="brand" aria-label="Sheep Tag 2 — home">
+      <Image
+        src={farmIcon}
+        alt=""
+        class="brand-logo"
+        width={44}
+        height={44}
+        densities={[2]}
+        loading="eager"
+      />
+    </a>
+
+    <nav class="nav nav-desktop" aria-label="Primary">
+      {
+        internal.map((l) => (
+          <a href={l.href} class:list={["nav-link", { active: isActive(l.href) }]}>
+            {l.label}
+          </a>
+        ))
+      }
+      {
+        external.map((l) => (
+          <a href={l.href} class="nav-link" target="_blank" rel="noopener">
+            {l.label}
+            <Icon name="external" size={14} class="ext-ico" />
+          </a>
+        ))
+      }
+    </nav>
+
+    <div class="header-actions">
+      <a href={LINKS.wishlist} class="btn btn--primary btn--sm wishlist" target="_blank" rel="noopener">
+        <Icon name="steam" size={16} /> Wishlist
+      </a>
+      <button
+        type="button"
+        class="hamburger"
+        id="nav-toggle"
+        aria-label="Open menu"
+        aria-controls="mobile-nav"
+        aria-expanded="false"
+      >
+        <Icon name="menu" size={26} />
+      </button>
+    </div>
+  </div>
+
+  <nav class="nav-mobile" id="mobile-nav" aria-label="Primary (mobile)" hidden>
+    <div class="wrap nav-mobile-inner">
+      {internal.map((l) => <a href={l.href} class="mobile-link">{l.label}</a>)}
+      {
+        external.map((l) => (
+          <a href={l.href} class="mobile-link" target="_blank" rel="noopener">
+            {l.label}
+            <Icon name="external" size={16} />
+          </a>
+        ))
+      }
+      <a href={LINKS.wishlist} class="btn btn--primary mobile-wishlist" target="_blank" rel="noopener">
+        <Icon name="steam" size={16} /> Wishlist on Steam
+      </a>
+    </div>
+  </nav>
+</header>
+
+<style>
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: color-mix(in srgb, var(--st-bg) 82%, transparent);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--st-border);
+  }
+  .header-inner {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    min-height: var(--st-header-h);
+  }
+  .brand {
+    display: inline-flex;
+    align-items: center;
+    flex-shrink: 0;
+  }
+  .brand-logo {
+    height: 44px;
+    width: 44px;
+    transition: transform 0.16s ease;
+  }
+  .brand:hover .brand-logo {
+    transform: scale(1.08) rotate(-3deg);
+  }
+  .nav {
+    display: flex;
+    align-items: center;
+    gap: clamp(0.5rem, 1.5vw, 1.4rem);
+  }
+  .nav-desktop {
+    margin-left: auto;
+  }
+  .nav-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25em;
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: 0.98rem;
+    color: var(--st-ink);
+    text-decoration: none;
+    padding: 0.4em 0.2em;
+    border-bottom: 2px solid transparent;
+  }
+  .nav-link:hover {
+    color: var(--st-green-bright);
+  }
+  .nav-link.active {
+    color: var(--st-green-bright);
+    border-bottom-color: var(--st-green);
+  }
+  .ext-ico {
+    opacity: 0.55;
+  }
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-left: auto;
+  }
+  .nav-desktop + .header-actions {
+    margin-left: 0;
+  }
+  .hamburger {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    background: transparent;
+    border: none;
+    color: var(--st-ink);
+    cursor: pointer;
+  }
+  .nav-mobile {
+    border-top: 1px solid var(--st-border);
+    background: var(--st-bg-2);
+  }
+  .nav-mobile-inner {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding-block: 0.75rem 1.25rem;
+  }
+  .mobile-link {
+    display: flex;
+    align-items: center;
+    gap: 0.4em;
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: 1.15rem;
+    color: var(--st-ink);
+    text-decoration: none;
+    padding: 0.7em 0.2em;
+    border-bottom: 1px solid var(--st-border);
+  }
+  .mobile-wishlist {
+    margin-top: 0.9rem;
+    align-self: flex-start;
+  }
+
+  @media (max-width: 900px) {
+    .nav-desktop {
+      display: none;
+    }
+    .hamburger {
+      display: inline-flex;
+    }
+  }
+  @media (min-width: 901px) {
+    .nav-mobile {
+      display: none;
+    }
+  }
+</style>
+
+<script>
+  const toggle = document.getElementById("nav-toggle");
+  const menu = document.getElementById("mobile-nav");
+  if (toggle && menu) {
+    const setOpen = (open: boolean) => {
+      menu.hidden = !open;
+      toggle.setAttribute("aria-expanded", String(open));
+      toggle.setAttribute("aria-label", open ? "Close menu" : "Open menu");
+      document.body.style.overflow = open ? "hidden" : "";
+    };
+    toggle.addEventListener("click", () =>
+      setOpen(toggle.getAttribute("aria-expanded") !== "true"),
+    );
+    menu.querySelectorAll("a").forEach((a) =>
+      a.addEventListener("click", () => setOpen(false)),
+    );
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && toggle.getAttribute("aria-expanded") === "true")
+        setOpen(false);
+    });
+  }
+</script>

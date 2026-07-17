@@ -1,0 +1,49 @@
+name: Terrain submission
+description: Submit a terrain for the Sheep Tag 2 Content Library
+title: "[Terrain] "
+labels: ["terrain-submission"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for sharing a map! Fill this in and attach your `.json` file below.
+        Prefer to do it yourself? You can [upload it directly](https://github.com/LunaWolfStudios/SheepTag2-ContentLibrary/upload/main/terrains) and open a pull request instead.
+  - type: input
+    id: name
+    attributes:
+      label: Terrain name
+    validations:
+      required: true
+  - type: input
+    id: author
+    attributes:
+      label: Author / credit
+      description: How you'd like to be credited on the site.
+    validations:
+      required: true
+  - type: input
+    id: size
+    attributes:
+      label: Map size
+      placeholder: "e.g. 128×128"
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: A short description of your map.
+    validations:
+      required: true
+  - type: textarea
+    id: file
+    attributes:
+      label: Terrain file
+      description: Drag-and-drop your exported `.json` file here to attach it (or paste a link).
+    validations:
+      required: true
+  - type: checkboxes
+    id: license
+    attributes:
+      label: License
+      options:
+        - label: This is my own original work, and I agree to license it under CC BY 4.0.
+          required: true

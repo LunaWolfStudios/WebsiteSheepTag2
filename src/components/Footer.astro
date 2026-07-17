@@ -1,0 +1,140 @@
+---
+import { LINKS } from "../data/links";
+import Icon from "./Icon.astro";
+
+const year = new Date().getFullYear();
+
+const socials: Array<{ href: string; label: string; icon?: string; img?: string }> = [
+  { href: "/", label: "Homepage", icon: "home" },
+  { href: LINKS.steam, label: "Steam", icon: "steam" },
+  { href: LINKS.kickstarter, label: "Kickstarter", icon: "kickstarter" },
+  { href: LINKS.x, label: "X (Twitter)", icon: "x" },
+  { href: LINKS.facebook, label: "Facebook", icon: "facebook" },
+  { href: LINKS.instagram, label: "Instagram", icon: "instagram" },
+  { href: LINKS.youtube, label: "YouTube", icon: "youtube" },
+  { href: LINKS.twitch, label: "Twitch", icon: "twitch" },
+  { href: LINKS.indiedb, label: "IndieDB", img: "/social-icons/indiedb.png" },
+  { href: LINKS.discord, label: "Discord", icon: "discord" },
+];
+
+const isExternal = (href: string) => href.startsWith("http");
+---
+
+<footer class="site-footer">
+  <div class="wrap footer-inner">
+    <ul class="socials" aria-label="Sheep Tag 2 on social platforms">
+      {
+        socials.map((s) => (
+          <li>
+            <a
+              href={s.href}
+              class="social"
+              aria-label={s.label}
+              title={s.label}
+              target={isExternal(s.href) ? "_blank" : undefined}
+              rel={isExternal(s.href) ? "noopener" : undefined}
+            >
+              {s.img ? (
+                <img src={s.img} alt="" width="18" height="18" loading="lazy" class="social-img" />
+              ) : (
+                <Icon name={s.icon!} size={18} />
+              )}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+
+    <p class="contact">
+      Questions or comments? <a href="mailto:support@lunawolfstudios.com">support@lunawolfstudios.com</a>
+    </p>
+
+    <p class="legal">
+      &copy; 2017&ndash;{year} Luna Wolf Studios LLC. All rights reserved. &middot;&#32;<a href="/privacy" target="_blank">Privacy Policy</a> | <a href="/eula" target="_blank">EULA</a>
+    </p>
+
+    <p class="meta">
+      <a href="/history" class="history-link">History</a>
+    </p>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    margin-top: auto;
+    border-top: 1px solid var(--st-border);
+    background: var(--st-bg-2);
+    padding-block: 2rem;
+  }
+  .footer-inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.1rem;
+    text-align: center;
+  }
+  .socials {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.35rem;
+    list-style: none;
+    padding: 0;
+  }
+  .social {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    color: var(--st-ink-muted);
+    background: var(--st-surface);
+    border: 1px solid var(--st-border);
+    transition: color 0.12s ease, border-color 0.12s ease, transform 0.12s ease;
+  }
+  .social:hover {
+    color: var(--st-green-bright);
+    border-color: var(--st-green);
+    transform: translateY(-2px);
+  }
+  .social-img {
+    opacity: 0.7;
+    filter: grayscale(1);
+    transition: opacity 0.12s ease, filter 0.12s ease;
+  }
+  .social:hover .social-img {
+    opacity: 1;
+    filter: none;
+  }
+  .contact {
+    font-size: 0.9rem;
+    color: var(--st-ink-muted);
+  }
+  .contact a {
+    color: var(--st-green-bright);
+  }
+  .legal {
+    max-width: 62ch;
+    font-size: 0.82rem;
+    line-height: 1.6;
+    color: var(--st-ink-subtle);
+  }
+  .legal a {
+    color: var(--st-ink-muted);
+  }
+  .meta {
+    font-size: 0.82rem;
+    color: var(--st-ink-subtle);
+    display: flex;
+    gap: 0.6rem;
+    align-items: center;
+  }
+  .meta a {
+    color: var(--st-ink-subtle);
+    text-decoration: none;
+  }
+  .meta a:hover {
+    color: var(--st-green-bright);
+  }
+</style>

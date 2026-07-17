@@ -1,0 +1,73 @@
+/* Sheep Tag 2 — easter-egg "lore page" stylesheet (history/east.html). */
+:root {
+  --parchment: #f4ead2;
+  --parchment-edge: #e7d7b3;
+  --ink: #3a2f1c;
+  --ink-soft: #5c4a2e;
+  --green: #4f8f2e;
+  --gold: #c48a1a;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: clamp(1.5rem, 5vw, 4rem) 1rem 5rem;
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 50% -10%, #fbf3df, transparent 60%),
+    repeating-linear-gradient(0deg, transparent, transparent 34px, rgba(120, 90, 40, 0.05) 35px),
+    var(--parchment);
+  color: var(--ink);
+  font-family: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif;
+  font-size: 1.05rem;
+  line-height: 1.8;
+  text-align: center;
+}
+
+/* Center the free-flowing text in a readable column. */
+body > * {
+  max-width: 68ch;
+  margin-inline: auto;
+  text-align: left;
+}
+
+h1 {
+  font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+  font-size: clamp(1.8rem, 1.3rem + 2vw, 2.8rem);
+  color: var(--green);
+  text-align: center;
+  letter-spacing: 0.02em;
+  margin: 0.2em auto 0.1em;
+  text-shadow: 1px 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+h2 {
+  font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+  font-size: 1.15rem;
+  color: var(--gold);
+  text-align: center;
+  font-weight: 600;
+  margin: 0 auto 2rem;
+}
+
+b {
+  color: var(--ink);
+}
+
+i {
+  color: var(--ink-soft);
+}
+
+a {
+  color: var(--green);
+}
+
+/* A soft parchment card feel around the whole body content. */
+@media (min-width: 640px) {
+  body {
+    background-attachment: fixed;
+  }
+}

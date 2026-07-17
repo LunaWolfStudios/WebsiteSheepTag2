@@ -1,0 +1,603 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import Icon from "../components/Icon.astro";
+import { LINKS } from "../data/links";
+import manifest from "../data/terrains.json";
+
+// The content-addressed ids already in the library — for client-side duplicate
+// detection (a matching id means byte-identical content).
+const libJson = JSON.stringify(
+  (manifest.terrains as Array<{ id: string }>).map((t) => t.id),
+).replace(/</g, "\\u003c");
+---
+
+<BaseLayout
+  title="Submit a Terrain — Sheep Tag 2"
+  description="Submit your original Sheep Tag 2 terrain to the community Content Library. Terrains are validated automatically before submission."
+>
+  <section class="wrap submit-page">
+    <header class="submit-head">
+      <h1>Terrain Submission</h1>
+      <p class="sub" id="submit-sub">
+        Help grow the Sheep Tag 2 community by submitting your original terrain. Every terrain is
+        automatically validated before it can be submitted, helping us catch common issues early
+        and making the review process much faster.
+      </p>
+    </header>
+
+    <form
+      id="submit-form"
+      method="POST"
+      action={LINKS.terrainSubmitEndpoint}
+      enctype="multipart/form-data"
+      target="_self"
+    >
+      <!-- Relay configuration (FormSubmit.co) -->
+      <input type="hidden" name="_template" value="table" />
+      <input type="hidden" name="_captcha" value="false" />
+      <input type="hidden" name="_subject" id="f-subject" value="Sheep Tag 2 — Terrain Submission" />
+      <input type="hidden" name="_next" id="f-next" value="https://www.sheeptag2.com/submit?submitted=1" />
+      <input type="hidden" name="_replyto" id="f-replyto" />
+      <!-- "Send me a copy": CC the submission email to the author (reliable on FormSubmit) -->
+      <input type="hidden" name="_cc" id="f-cc" disabled />
+      <input type="text" name="_honey" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true" />
+      <!-- Filled from the validated terrain before submit -->
+      <input type="hidden" name="submission_timestamp" id="f-timestamp" />
+      <input type="hidden" name="terrain_name" id="f-tname" />
+      <input type="hidden" name="terrain_author" id="f-tauthor" />
+      <input type="hidden" name="terrain_version" id="f-tversion" />
+      <input type="hidden" name="terrain_size" id="f-tsize" />
+      <input type="hidden" name="terrain_file_size" id="f-tfilesize" />
+      <input type="hidden" name="terrain_description" id="f-tdesc" />
+      <input type="hidden" name="validation_summary" id="f-vsummary" />
+
+      <fieldset class="panel">
+        <legend>Contact Information</legend>
+        <p class="panel-hint">We'll only use this information if we need to contact you about your submission.</p>
+        <div class="field-grid">
+          <label class="field">
+            <span class="field-label">Name</span>
+            <input type="text" name="name" id="in-name" required autocomplete="name" />
+            <span class="field-err" id="err-name" hidden>Please enter your name.</span>
+          </label>
+          <label class="field">
+            <span class="field-label">Email Address</span>
+            <input type="email" name="email" id="in-email" required autocomplete="email" />
+            <span class="field-err" id="err-email" hidden>Please enter a valid email address (for example: name@example.com).</span>
+          </label>
+        </div>
+      </fieldset>
+
+      <fieldset class="panel">
+        <legend>Terrain File</legend>
+        <p class="panel-hint">Drag &amp; drop your terrain below, or browse for a file. Only a single <code>.json</code> terrain may be uploaded.</p>
+
+        <div class="dropzone" id="dropzone" role="button" tabindex="0" aria-label="Upload terrain file — drag and drop or click to browse">
+          <input type="file" name="attachment" id="file-input" accept=".json,application/json" required class="file-input-hidden" tabindex="-1" />
+          <div class="dz-idle" id="dz-idle">
+            <Icon name="upload" size={36} class="dz-ico" />
+            <p class="dz-title">Drop Terrain Here</p>
+            <p class="dz-sub">Drag &amp; drop your <code>.json</code> terrain file, or click to browse</p>
+            <p class="dz-limit">Maximum file size: 10 MB</p>
+          </div>
+          <div class="dz-summary" id="dz-summary" hidden>
+            <img id="dz-thumb" alt="Terrain map preview" width="96" height="96" hidden />
+            <div class="dz-info">
+              <p class="dz-file" id="dz-file"></p>
+              <p class="dz-meta" id="dz-meta"></p>
+              <p class="dz-desc" id="dz-desc"></p>
+              <p class="dz-state" id="dz-state"></p>
+              <p class="dz-replace">Drop a new file here or click to replace it — or press ✕ to remove it.</p>
+            </div>
+          </div>
+          <p class="dz-drop-hint" aria-hidden="true">Drop your terrain here</p>
+          <button type="button" class="dz-clear" id="dz-clear" aria-label="Remove selected terrain" hidden>
+            <Icon name="close" size={18} />
+          </button>
+        </div>
+
+        <ul class="vchecks" id="vchecks" hidden>
+          <li class="vcheck" id="v-json"><span class="v-ico" aria-hidden="true"></span><div><span class="v-label">Valid JSON</span><p class="v-msg" hidden></p></div></li>
+          <li class="vcheck" id="v-meta"><span class="v-ico" aria-hidden="true"></span><div><span class="v-label">Metadata found</span><p class="v-msg" hidden></p></div></li>
+          <li class="vcheck" id="v-preview"><span class="v-ico" aria-hidden="true"></span><div><span class="v-label">Preview image found</span><p class="v-msg" hidden></p></div></li>
+          <li class="vcheck" id="v-format"><span class="v-ico" aria-hidden="true"></span><div><span class="v-label">Terrain format recognized</span><p class="v-msg" hidden></p></div></li>
+          <li class="vcheck" id="v-dupe"><span class="v-ico" aria-hidden="true"></span><div><span class="v-label">New to the library</span><p class="v-msg" hidden></p></div></li>
+        </ul>
+      </fieldset>
+
+      <fieldset class="panel">
+        <legend>Author Declaration</legend>
+        <label class="chk">
+          <input type="checkbox" id="chk-decl" required />
+          <span>
+            I confirm that:
+            <ul class="decl-list">
+              <li>I have tested this terrain and it is playable in-game.</li>
+              <li>The Author credit is correct.</li>
+              <li>This terrain is my own original work.</li>
+              <li>I agree to license this terrain under <strong>CC BY 4.0</strong>.</li>
+              <li>The terrain does not contain offensive, explicit, or otherwise inappropriate content.</li>
+              <li>I understand Luna Wolf Studios may accept, reject, remove, or stop displaying this terrain at any time at its sole discretion.</li>
+            </ul>
+          </span>
+        </label>
+        <label class="chk">
+          <input type="checkbox" id="chk-privacy" required />
+          <span>I have read and agree to the <a href="/privacy" target="_blank">Privacy Policy</a>.</span>
+        </label>
+        <label class="chk">
+          <input type="checkbox" id="chk-copy" />
+          <span>Send me a copy of my submission via email. <em class="chk-hint">(optional)</em></span>
+        </label>
+      </fieldset>
+
+      <div class="submit-row">
+        <button type="submit" class="btn btn--primary" id="submit-btn" disabled>Submit Terrain</button>
+        <ul class="reqs" id="reqs">
+          <li data-req="name"><Icon name="check" size={12} /> Name</li>
+          <li data-req="email"><Icon name="check" size={12} /> Email</li>
+          <li data-req="file"><Icon name="check" size={12} /> Terrain validated</li>
+          <li data-req="decl"><Icon name="check" size={12} /> Declaration</li>
+          <li data-req="privacy"><Icon name="check" size={12} /> Privacy</li>
+        </ul>
+      </div>
+      <div class="progress" id="progress" hidden>
+        <div class="progress-bar"></div>
+      </div>
+      <noscript>
+        <p class="panel-hint">JavaScript is required for automatic terrain validation — with it disabled, your file is submitted without pre-checks.</p>
+      </noscript>
+    </form>
+
+    <script type="application/json" id="library-index" is:inline set:html={libJson} />
+
+    <div class="success-panel" id="success-panel" hidden>
+      <h2>🎉 Thank You!</h2>
+      <p>Thank you for contributing to the Sheep Tag 2 community!</p>
+      <p>Your terrain has been successfully submitted and is now awaiting review.</p>
+      <p>
+        Our team will validate and review your submission as soon as possible. If we have any
+        questions or need additional information, we'll contact you using the email address you
+        provided.
+      </p>
+      <p>
+        We genuinely appreciate everyone who helps expand the collection of community-created
+        terrains. Your creativity helps make Sheep Tag 2 even more fun for everyone.
+      </p>
+      <p class="success-sign"><strong>🐑 Happy tagging! 🐺</strong></p>
+      <a href="/terrains" class="btn btn--secondary">Browse Terrains</a>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .submit-page {
+    max-width: 780px;
+    padding-block: clamp(1.5rem, 4vw, 3rem) 4rem;
+  }
+  .submit-head h1 {
+    font-size: clamp(2rem, 1.4rem + 2.5vw, 3rem);
+  }
+  .submit-head .sub {
+    color: var(--st-ink-muted);
+    margin-top: 0.4rem;
+    line-height: 1.6;
+    text-wrap: pretty;
+  }
+
+  .panel {
+    margin-top: 1.5rem;
+    padding: 1.25rem 1.25rem 1.4rem;
+    background: var(--st-surface);
+    border: 1px solid var(--st-border);
+    border-radius: var(--st-radius-lg);
+  }
+  .panel legend {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 1.05rem;
+    color: var(--st-green-bright);
+    padding-inline: 0.5rem;
+  }
+  .panel-hint {
+    color: var(--st-ink-subtle);
+    font-size: 0.88rem;
+    margin-bottom: 1rem;
+  }
+
+  .field-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1rem;
+  }
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+  .field-label {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: 0.92rem;
+  }
+  .field input {
+    font: inherit;
+    color: var(--st-ink);
+    background: var(--st-bg-2);
+    border: 1px solid var(--st-border);
+    border-radius: 10px;
+    padding: 0.6rem 0.8rem;
+    transition: border-color 0.15s ease;
+  }
+  .field input:focus {
+    border-color: var(--st-green);
+    outline: none;
+  }
+  .field.invalid input {
+    border-color: var(--st-mushroom);
+  }
+  .field-err {
+    color: var(--st-mushroom);
+    font-size: 0.82rem;
+  }
+
+  .hp {
+    position: absolute;
+    left: -5000px;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .file-input-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .dropzone {
+    position: relative;
+    border: 2px dashed var(--st-border);
+    border-radius: var(--st-radius-lg);
+    background: var(--st-bg-2);
+    padding: 1.6rem;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+  }
+  .dropzone:hover,
+  .dropzone:focus-visible {
+    border-color: var(--st-green);
+  }
+  .dropzone.dz-over {
+    border-color: var(--st-green-bright);
+    background: color-mix(in srgb, var(--st-green-deep) 25%, var(--st-bg-2));
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--st-green) 25%, transparent), var(--st-shadow);
+    transform: scale(1.01);
+  }
+  .dz-ico {
+    margin-inline: auto;
+    color: var(--st-green-bright);
+  }
+  .dz-title {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 1.2rem;
+    margin-top: 0.5rem;
+  }
+  .dz-sub {
+    color: var(--st-ink-muted);
+    font-size: 0.92rem;
+    margin-top: 0.2rem;
+  }
+  .dz-limit {
+    color: var(--st-ink-subtle);
+    font-size: 0.8rem;
+    margin-top: 0.6rem;
+  }
+  /* Absolute overlay — the dropzone's size never changes during drag, so the
+     element under the cursor stays stable (no dragleave/dragenter jitter). */
+  .dz-drop-hint {
+    display: none;
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    align-items: center;
+    justify-content: center;
+    border-radius: inherit;
+    pointer-events: none;
+    background: color-mix(in srgb, var(--st-green-deep) 32%, var(--st-bg-2));
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 1.25rem;
+    color: var(--st-green-bright);
+  }
+  .dropzone.dz-over .dz-drop-hint {
+    display: flex;
+  }
+  .dz-clear[hidden] {
+    display: none; /* the display rule below would otherwise override the hidden attribute */
+  }
+  .dz-clear {
+    position: absolute;
+    top: 0.6rem;
+    right: 0.6rem;
+    z-index: 3;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: 1px solid var(--st-border);
+    background: var(--st-surface);
+    color: var(--st-ink-muted);
+    cursor: pointer;
+    transition: background-color 0.12s ease, color 0.12s ease, border-color 0.12s ease, transform 0.12s ease;
+  }
+  .dz-clear:hover {
+    background: color-mix(in srgb, var(--st-mushroom) 30%, var(--st-surface));
+    border-color: var(--st-mushroom);
+    color: var(--st-ink);
+    transform: scale(1.1);
+  }
+
+  .dz-summary {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    text-align: left;
+  }
+  .dz-summary[hidden] {
+    display: none;
+  }
+  #dz-thumb {
+    width: 96px;
+    height: 96px;
+    border-radius: 12px;
+    object-fit: cover;
+    flex-shrink: 0;
+    border: 1px solid var(--st-border);
+  }
+  .dz-info {
+    min-width: 0;
+  }
+  .dz-file {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 1.05rem;
+    overflow-wrap: anywhere;
+  }
+  .dz-meta {
+    color: var(--st-ink-muted);
+    font-size: 0.88rem;
+    margin-top: 0.15rem;
+  }
+  .dz-desc {
+    color: var(--st-ink-muted);
+    font-size: 0.88rem;
+    margin-top: 0.15rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .dz-state {
+    font-weight: 600;
+    font-size: 0.9rem;
+    margin-top: 0.35rem;
+  }
+  .dz-state.ok {
+    color: var(--st-green-bright);
+  }
+  .dz-state.bad {
+    color: var(--st-mushroom);
+  }
+  .dz-replace {
+    color: var(--st-ink-subtle);
+    font-size: 0.78rem;
+    margin-top: 0.3rem;
+  }
+
+  .vchecks {
+    list-style: none;
+    padding: 0;
+    margin: 1rem 0 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+  }
+  .vcheck {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    font-size: 0.92rem;
+    color: var(--st-ink-subtle);
+    transition: color 0.2s ease;
+  }
+  .v-ico {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    font-size: 0.75rem;
+    font-weight: 700;
+    flex-shrink: 0;
+    background: var(--st-bg-2);
+    border: 1px solid var(--st-border);
+    transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+  }
+  .vcheck.pass {
+    color: var(--st-ink);
+  }
+  .vcheck.pass .v-ico {
+    background: var(--st-green-deep);
+    border-color: var(--st-green);
+    color: var(--st-green-bright);
+    transform: scale(1.08);
+  }
+  .vcheck.pass .v-ico::before {
+    content: "✓";
+  }
+  .vcheck.fail {
+    color: var(--st-ink);
+  }
+  .vcheck.fail .v-ico {
+    background: color-mix(in srgb, var(--st-mushroom) 30%, var(--st-bg-2));
+    border-color: var(--st-mushroom);
+    color: var(--st-mushroom);
+  }
+  .vcheck.fail .v-ico::before {
+    content: "✕";
+  }
+  .v-msg {
+    color: var(--st-mushroom);
+    font-size: 0.84rem;
+    margin-top: 0.1rem;
+  }
+
+  .chk {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.7rem;
+    margin-top: 0.9rem;
+    cursor: pointer;
+    line-height: 1.55;
+  }
+  .chk input {
+    width: 20px;
+    height: 20px;
+    margin-top: 0.15rem;
+    flex-shrink: 0;
+    accent-color: var(--st-green);
+    cursor: pointer;
+  }
+  .chk-hint {
+    color: var(--st-ink-subtle);
+    font-style: normal;
+    font-size: 0.85rem;
+  }
+  .decl-list {
+    margin: 0.4rem 0 0 1.2rem;
+    color: var(--st-ink-muted);
+    font-size: 0.92rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .submit-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 1.6rem;
+  }
+  #submit-btn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+  .reqs {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    padding: 0;
+  }
+  .reqs li {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3em;
+    font-size: 0.76rem;
+    padding: 0.25em 0.7em;
+    border-radius: var(--st-radius-pill);
+    border: 1px solid var(--st-border);
+    color: var(--st-ink-subtle);
+    transition: color 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
+  }
+  .reqs li svg {
+    opacity: 0.35;
+    transition: opacity 0.2s ease;
+  }
+  .reqs li.done {
+    color: var(--st-green-bright);
+    border-color: var(--st-green-deep);
+    background: color-mix(in srgb, var(--st-green-deep) 25%, transparent);
+  }
+  .reqs li.done svg {
+    opacity: 1;
+  }
+
+  .progress {
+    margin-top: 1rem;
+    height: 6px;
+    border-radius: 3px;
+    background: var(--st-bg-2);
+    overflow: hidden;
+  }
+  .progress-bar {
+    height: 100%;
+    width: 40%;
+    border-radius: 3px;
+    background: linear-gradient(90deg, var(--st-green), var(--st-gold));
+    animation: progress-slide 1.1s ease-in-out infinite;
+  }
+  @keyframes progress-slide {
+    0% {
+      transform: translateX(-100%);
+    }
+    100% {
+      transform: translateX(350%);
+    }
+  }
+
+  .success-panel {
+    margin-top: 1.5rem;
+    padding: clamp(1.5rem, 4vw, 2.5rem);
+    background: var(--st-surface);
+    border: 1px solid var(--st-green-deep);
+    border-radius: var(--st-radius-lg);
+    box-shadow: var(--st-shadow);
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+    animation: success-in 0.4s cubic-bezier(0.2, 0.9, 0.3, 1.15) both;
+  }
+  @keyframes success-in {
+    from {
+      opacity: 0;
+      transform: translateY(14px) scale(0.98);
+    }
+  }
+  .success-panel[hidden] {
+    display: none;
+  }
+  .success-panel h2 {
+    font-size: clamp(1.6rem, 1.2rem + 1.6vw, 2.2rem);
+    color: var(--st-green-bright);
+  }
+  /* The heading receives programmatic focus for screen readers — no visible ring. */
+  .success-panel h2:focus,
+  .success-panel h2:focus-visible {
+    outline: none;
+  }
+  .success-panel p {
+    color: var(--st-ink-muted);
+    line-height: 1.65;
+  }
+  .success-sign {
+    color: var(--st-ink) !important;
+  }
+  .success-panel .btn {
+    align-self: flex-start;
+    margin-top: 0.4rem;
+  }
+</style>
+
+<script>
+  import "../scripts/terrain-submit.ts";
+</script>

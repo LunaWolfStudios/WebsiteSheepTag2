@@ -4,39 +4,36 @@ Thanks for making maps for **Sheep Tag 2**! This repository is the community **T
 
 ## What a terrain is
 
-Each terrain is a single `.json` file exported from Sheep Tag 2, saved in the [`terrains/`](terrains/) folder. It contains a `Metadata` block plus the map's tile data:
+Each terrain is a single `.st2` file saved by Sheep Tag 2's level editor, dropped into the [`terrains/`](terrains/) folder. A `.st2` is a compressed archive holding three files at its top level:
 
-```jsonc
-{
-  "Metadata": {
-    "Name": "Your Terrain Name",
-    "Author": "Your name / handle",
-    "Version": "1",
-    "Description": "A short description of your map.",
-    "PreviewImage": "…"        // a small preview image, saved automatically by the game
-  },
-  "Width": 128, "Length": 128, // the map size
-  "TileData": [ /* … */ ]
-}
-```
+| File | What's in it |
+|------|--------------|
+| `meta.json` | Name, Author, Version, Description, Tags, map size, tileset, preview image, and the content hash |
+| `terrain.json` | The map's tile data |
+| `scenery.json` | Scenery placement and spawn points |
 
-The website reads the `Metadata` and preview automatically — so please fill in the **Name**, **Author**, **Version**, and **Description**, and keep the preview image.
+The website reads `meta.json` and the preview automatically — so please fill in the **Name**, **Author**, **Version**, and **Description** in the level editor, and keep the preview image.
+
+### The content hash
+
+The level editor stamps a `ContentHash` into `meta.json` that signs the archive's contents. **Don't unpack, hand-edit, or rezip a `.st2`** — the hash stops matching, and both the submission form and the site's build reject the map. Make your changes in the level editor and save from there.
 
 ## How to submit
 
 ### Option A — The submission form (recommended, no account needed)
 
-Use the **[terrain submission form](https://www.sheeptag2.com/submit)** on the website: drop in your `.json`, it's validated instantly in your browser, and it's sent to us for review.
+Use the **[terrain submission form](https://www.sheeptag2.com/submit)** on the website: drop in your `.st2`, it's validated instantly in your browser, and it's sent to us for review.
 
 ### Option B — Pull request (for git users)
 
-[Upload your `.json` to the `terrains/` folder](https://github.com/LunaWolfStudios/SheepTag2-ContentLibrary/upload/main/terrains) and GitHub will open a pull request for review.
+[Upload your `.st2` to the `terrains/` folder](https://github.com/LunaWolfStudios/SheepTag2-ContentLibrary/upload/main/terrains) and GitHub will open a pull request for review.
 
 ## Guidelines
 
 - Credit yourself in the `Author` field — you'll be shown on the site.
 - Give your terrain a clear **Name** and a helpful **Description**.
 - Make sure it's tested and playable in-game.
+- Save it from the level editor so its content hash verifies (see above).
 - **License:** by submitting a terrain you confirm it's your own original work and agree to license it under **[Creative Commons Attribution 4.0 (CC BY 4.0)](terrains/LICENSE)**. Please only submit maps you have the right to share.
 
 ## Where do downloaded terrains go?

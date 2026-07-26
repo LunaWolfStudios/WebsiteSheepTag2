@@ -6,7 +6,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        Thanks for sharing a map! Fill this in and attach your `.json` file below.
+        Thanks for sharing a map! Fill this in and attach your `.st2` file below.
         Prefer to do it yourself? You can [upload it directly](https://github.com/LunaWolfStudios/SheepTag2-ContentLibrary/upload/main/terrains) and open a pull request instead.
   - type: input
     id: name
@@ -26,6 +26,11 @@ body:
     attributes:
       label: Map size
       placeholder: "e.g. 128×128"
+  - type: input
+    id: tileset
+    attributes:
+      label: Tileset
+      placeholder: "e.g. Pasture"
   - type: textarea
     id: description
     attributes:
@@ -37,7 +42,7 @@ body:
     id: file
     attributes:
       label: Terrain file
-      description: Drag-and-drop your exported `.json` file here to attach it (or paste a link).
+      description: Drag-and-drop your `.st2` file here to attach it (or paste a link).
     validations:
       required: true
   - type: checkboxes
@@ -46,4 +51,6 @@ body:
       label: License
       options:
         - label: This is my own original work, and I agree to license it under CC BY 4.0.
+          required: true
+        - label: This map was saved from the level editor — I haven't unpacked, hand-edited, or rezipped the `.st2`.
           required: true

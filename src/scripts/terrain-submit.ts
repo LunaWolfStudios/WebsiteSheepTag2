@@ -1,15 +1,42 @@
 /**
  * Terrain submission portal island.
- * Validates the terrain fully in the browser (nothing is uploaded until submit),
- * checks for exact duplicates against the current library (filename, then SHA-256),
- * gates the submit button on every requirement, and posts the multipart form —
- * terrain attached — to the configured relay, which emails it to support@.
- * All markup is server-rendered; this script only toggles state.
+ * Validates the .st2 map archive fully in the browser (nothing is uploaded until submit):
+ * the archive unpacks to exactly the three map files at its root, the metadata and tile data
+ * are complete, and the level editor's content hash still matches — so a map that was
+ * hand-edited or rezipped outside the editor can't be submitted. Then it checks the content
+ * hash against the current library for duplicates, gates the submit button on every
+ * requirement, and posts the multipart form — terrain attached — to the configured relay,
+ * which emails it to support@. All markup is server-rendered; this script only toggles state.
  */
+import {
+  EXTENSION,
+  St2Error,
+  checkMetadata,
+  checkTerrain,
+  readArchive,
+  tilesetName,
+  verifyContentHash,
+  type St2Archive,
+} from "../lib/st2";
+
 const MAX_BYTES = 10 * 1024 * 1024;
 
-type CheckId = "v-json" | "v-meta" | "v-preview" | "v-format" | "v-dupe";
-const ALL_CHECKS: CheckId[] = ["v-json", "v-meta", "v-preview", "v-format", "v-dupe"];
+type CheckId = "v-archive" | "v-meta" | "v-preview" | "v-format" | "v-hash" | "v-dupe";
+const ALL_CHECKS: CheckId[] = ["v-archive", "v-meta", "v-preview", "v-format", "v-hash", "v-dupe"];
+
+const HIDDEN_FIELDS = [
+  "f-tname",
+  "f-tauthor",
+  "f-tversion",
+  "f-tsize",
+  "f-ttileset",
+  "f-ttags",
+  "f-tgamever",
+  "f-thash",
+  "f-tfilesize",
+  "f-tdesc",
+  "f-vsummary",
+];
 
 interface TerrainMeta {
   name: string;
@@ -17,6 +44,10 @@ interface TerrainMeta {
   version: string;
   description: string;
   size: string;
+  tileset: string;
+  tags: string[];
+  gameVersion: string;
+  contentHash: string;
   fileSize: string;
   preview: string | null;
 }
@@ -63,15 +94,6 @@ function readLibrary(): string[] {
   }
 }
 
-/** Content-addressed id: same 16-hex slice of SHA-256 the build uses (scripts/build.mts). */
-async function terrainId(buf: ArrayBuffer): Promise<string> {
-  const digest = await crypto.subtle.digest("SHA-256", buf);
-  return Array.from(new Uint8Array(digest))
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("")
-    .slice(0, 16);
-}
-
 function initSubmit(form: HTMLFormElement) {
   // Success screen (after the relay redirects back with ?submitted=1)
   if (new URLSearchParams(location.search).has("submitted")) {
@@ -108,6 +130,7 @@ function initSubmit(form: HTMLFormElement) {
   let meta: TerrainMeta | null = null;
   let submitting = false;
   let dragDepth = 0; // dragenter/dragleave counter — child transitions can't cause jitter
+  let validating = 0; // token for the newest validation run — see validateFile
 
   const emailValid = () => /^[^\s@]+@[^\s@]+$/.test(emailIn.value.trim()); // intentionally lenient
 
@@ -133,6 +156,7 @@ function initSubmit(form: HTMLFormElement) {
   }
 
   function clearFile(refocus = true) {
+    validating++; // orphan any run still in flight
     fileIn.value = "";
     fileOk = false;
     meta = null;
@@ -144,14 +168,17 @@ function initSubmit(form: HTMLFormElement) {
     vchecks.hidden = true;
     ALL_CHECKS.forEach((c) => setCheck(c, "pending"));
     ($("f-subject") as HTMLInputElement).value = "Sheep Tag 2 — Terrain Submission";
-    ["f-tname", "f-tauthor", "f-tversion", "f-tsize", "f-tfilesize", "f-tdesc", "f-vsummary"].forEach(
-      (id) => (($(id) as HTMLInputElement).value = ""),
-    );
+    HIDDEN_FIELDS.forEach((id) => (($(id) as HTMLInputElement).value = ""));
     gate();
     if (refocus) dropzone.focus();
   }
 
   async function validateFile(file: File) {
+    // Unzipping and hashing are async, so a second file dropped mid-run would otherwise race
+    // the first. Only the newest run is allowed to touch the UI.
+    const run = ++validating;
+    const stale = () => run !== validating;
+
     fileOk = false;
     meta = null;
     vchecks.hidden = false;
@@ -178,39 +205,40 @@ function initSubmit(form: HTMLFormElement) {
       gate();
     };
 
-    // Valid JSON: extension, size, parse
-    if (!file.name.toLowerCase().endsWith(".json"))
-      return fail("v-json", "Only Sheep Tag 2 terrain (.json) files are supported.");
-    if (file.size > MAX_BYTES) return fail("v-json", "Terrain files must be smaller than 10 MB.");
-    const rawBuf = await file.arrayBuffer();
-    let data: Record<string, unknown>;
+    // The archive: extension, size, and a readable zip holding exactly the three map files
+    // at its root.
+    if (!file.name.toLowerCase().endsWith(EXTENSION))
+      return fail("v-archive", `Only Sheep Tag 2 terrain (${EXTENSION}) files are supported.`);
+    if (file.size > MAX_BYTES) return fail("v-archive", "Terrain files must be smaller than 10 MB.");
+
+    let archive: St2Archive;
     try {
-      data = JSON.parse(new TextDecoder().decode(rawBuf)) as Record<string, unknown>;
-    } catch {
-      return fail("v-json", "The selected file is not valid JSON.");
+      archive = await readArchive(new Uint8Array(await file.arrayBuffer()));
+    } catch (e) {
+      if (stale()) return;
+      return fail(
+        "v-archive",
+        e instanceof St2Error ? e.message : "The selected file isn't a readable terrain archive.",
+      );
     }
-    setCheck("v-json", "pass");
+    if (stale()) return;
+    setCheck("v-archive", "pass");
+
+    const md = archive.metadata;
 
     // Show the map preview as soon as it decodes — even if later checks fail,
     // the author can still see which map this is.
-    const md = data.Metadata as Record<string, unknown> | undefined;
-    const previewB64 = md && typeof md.PreviewImage === "string" ? md.PreviewImage : "";
+    const previewB64 = typeof md.PreviewImage === "string" ? md.PreviewImage : "";
     const previewSrc = previewB64 ? await decodePreview(previewB64) : null;
+    if (stale()) return;
     if (previewSrc) {
       dzThumb.src = previewSrc;
       dzThumb.hidden = false;
     }
 
-    // Metadata block + required fields (Description must exist but may be empty)
-    if (!md || typeof md !== "object")
-      return fail("v-meta", "Required terrain metadata is missing.");
-    for (const field of ["Name", "Author", "Version"]) {
-      const v = md[field];
-      if (v === undefined || v === null || String(v).trim() === "")
-        return fail("v-meta", `Metadata.${field} is required.`);
-    }
-    if (!("Description" in md))
-      return fail("v-meta", "Metadata.Description is missing (an empty description is fine).");
+    // Metadata fields (Description must exist but may be empty)
+    const metaProblem = checkMetadata(md);
+    if (metaProblem) return fail("v-meta", metaProblem);
     setCheck("v-meta", "pass");
 
     // Preview image (must decode)
@@ -219,37 +247,41 @@ function initSubmit(form: HTMLFormElement) {
     setCheck("v-preview", "pass");
 
     // Terrain format: dimensions + complete tile data
-    const width = Number(data.Width);
-    const length = Number(data.Length);
-    const tiles = data.TileData;
-    if (
-      !Number.isFinite(width) ||
-      !Number.isFinite(length) ||
-      width <= 0 ||
-      length <= 0 ||
-      !Array.isArray(tiles) ||
-      tiles.length !== width * length
-    )
-      return fail("v-format", "This file doesn't appear to be a valid Sheep Tag 2 terrain.");
+    const formatProblem = checkTerrain(archive);
+    if (formatProblem) return fail("v-format", formatProblem);
     setCheck("v-format", "pass");
 
-    // Duplicate detection: a matching content id means byte-identical content.
+    // Provenance: the content hash the level editor stamps in must still match the archive's
+    // contents. A map edited or repacked by hand won't, and we don't accept those.
+    let authentic: boolean;
     try {
-      const id = await terrainId(rawBuf);
-      if (library.includes(id)) {
-        fail("v-dupe", "This map has already been uploaded — ");
-        // Link straight to the existing copy (same window)
-        const msgEl = $("v-dupe")?.querySelector(".v-msg") as HTMLElement | null;
-        if (msgEl) {
-          const a = document.createElement("a");
-          a.href = `/terrains?id=${id}`;
-          a.textContent = "view it in the library";
-          msgEl.append(a, document.createTextNode("."));
-        }
-        return;
-      }
+      authentic = await verifyContentHash(archive);
     } catch {
-      /* hashing unavailable — skip the dupe check rather than block */
+      if (stale()) return;
+      return fail("v-hash", "This map's contents couldn't be verified in your browser.");
+    }
+    if (stale()) return;
+    if (!authentic)
+      return fail(
+        "v-hash",
+        "This map's contents don't match the signature the level editor saved with it — it was changed outside the editor. Re-save it from the level editor and try again.",
+      );
+    setCheck("v-hash", "pass");
+
+    const contentHash = String(md.ContentHash);
+
+    // Duplicate detection: the content hash identifies the exact map.
+    if (library.includes(contentHash)) {
+      fail("v-dupe", "This map has already been uploaded — ");
+      // Link straight to the existing copy (same window)
+      const msgEl = $("v-dupe")?.querySelector(".v-msg") as HTMLElement | null;
+      if (msgEl) {
+        const a = document.createElement("a");
+        a.href = `/terrains?id=${contentHash}`;
+        a.textContent = "view it in the library";
+        msgEl.append(a, document.createTextNode("."));
+      }
+      return;
     }
     setCheck("v-dupe", "pass");
 
@@ -257,15 +289,28 @@ function initSubmit(form: HTMLFormElement) {
       name: String(md.Name),
       author: String(md.Author),
       version: String(md.Version),
-      description: String(md.Description),
-      size: `${width}×${length}`,
+      description: String(md.Description ?? ""),
+      size: `${archive.terrain.Width}×${archive.terrain.Length}`,
+      tileset: tilesetName(md.TilesetId),
+      tags: Array.isArray(md.Tags) ? md.Tags.map(String) : [],
+      gameVersion: String(md.SupportedGameVersion ?? ""),
+      contentHash,
       fileSize: humanBytes(file.size),
       preview: previewSrc,
     };
 
     // Review card so the author can confirm everything looks right
     dzFile.textContent = `✔ ${file.name}`;
-    dzMeta.textContent = `${meta.name} · by ${meta.author} · ${meta.size} · v${meta.version} · ${meta.fileSize}`;
+    dzMeta.textContent = [
+      meta.name,
+      `by ${meta.author}`,
+      meta.size,
+      meta.tileset,
+      `v${meta.version}`,
+      meta.fileSize,
+    ]
+      .filter(Boolean)
+      .join(" · ");
     dzDesc.textContent = meta.description;
     dzThumb.src = previewSrc;
     dzThumb.hidden = false;
@@ -278,10 +323,14 @@ function initSubmit(form: HTMLFormElement) {
     ($("f-tauthor") as HTMLInputElement).value = meta.author;
     ($("f-tversion") as HTMLInputElement).value = meta.version;
     ($("f-tsize") as HTMLInputElement).value = meta.size;
+    ($("f-ttileset") as HTMLInputElement).value = meta.tileset;
+    ($("f-ttags") as HTMLInputElement).value = meta.tags.join(", ");
+    ($("f-tgamever") as HTMLInputElement).value = meta.gameVersion;
+    ($("f-thash") as HTMLInputElement).value = meta.contentHash;
     ($("f-tfilesize") as HTMLInputElement).value = meta.fileSize;
     ($("f-tdesc") as HTMLInputElement).value = meta.description;
     ($("f-vsummary") as HTMLInputElement).value =
-      "Client validation passed: valid JSON · metadata complete · preview image present · terrain format recognized · not a duplicate";
+      "Client validation passed: valid .st2 archive · metadata complete · preview image present · terrain format recognized · content hash verified (saved by the level editor) · not a duplicate";
 
     fileOk = true;
     gate();

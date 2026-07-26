@@ -1,9 +1,9 @@
 /**
  * Terrains browser (WEBSITE_PROPOSAL.md §7, build-time data).
- * All metadata + preview thumbnails are generated at build (scripts/build.mts) and
- * embedded as JSON. This island handles Grid/List views, search, a map-size filter,
- * sort, pagination with a per-page selector, and a per-terrain detail dialog.
- * No network requests.
+ * All metadata + preview thumbnails are read out of the .st2 archives at build
+ * (scripts/build.mts) and embedded as JSON. This island handles Grid/List views, search,
+ * map-size and tileset filters, sort, pagination with a per-page selector, and a per-terrain
+ * detail dialog. No network requests.
  */
 interface Terrain {
   id: string;
@@ -13,6 +13,9 @@ interface Terrain {
   version: string;
   description: string;
   size: string;
+  tileset: string;
+  tags: string[];
+  gameVersion: string;
   thumb: string | null;
   download: string;
   file: string;
@@ -34,16 +37,26 @@ function readData(): Terrain[] {
   }
 }
 
-function badge(text: string, gold = false): HTMLElement {
+function badge(text: string, variant = ""): HTMLElement {
   const s = document.createElement("span");
-  s.className = gold ? "badge badge--gold" : "badge";
+  s.className = variant ? `badge badge--${variant}` : "badge";
   s.textContent = text;
   return s;
+}
+
+/** Size, tileset and version chips — the same set the SSR markup renders. */
+function badgesFor(t: Terrain): HTMLElement[] {
+  const out: HTMLElement[] = [];
+  if (t.size) out.push(badge(t.size));
+  if (t.tileset) out.push(badge(t.tileset, "sky"));
+  if (t.version) out.push(badge(`v${t.version}`, "gold"));
+  return out;
 }
 
 function initTerrains(view: HTMLElement) {
   const searchEl = document.getElementById("terrain-search") as HTMLInputElement | null;
   const sizeEl = document.getElementById("terrain-size") as HTMLSelectElement | null;
+  const tilesetEl = document.getElementById("terrain-tileset") as HTMLSelectElement | null;
   const sortEl = document.getElementById("terrain-sort") as HTMLSelectElement | null;
   const perPageEl = document.getElementById("terrain-perpage") as HTMLSelectElement | null;
   const gridBtn = document.getElementById("btn-grid");
@@ -61,7 +74,7 @@ function initTerrains(view: HTMLElement) {
   let perPage = 25;
   let page = 0;
 
-  /** Keep ?id=<hash> in the URL so every terrain has a stable shareable link. */
+  /** Keep ?id=<content hash> in the URL so every terrain has a stable shareable link. */
   function syncUrl(id: string | null) {
     const url = new URL(location.href);
     if (id) url.searchParams.set("id", id);
@@ -78,10 +91,16 @@ function initTerrains(view: HTMLElement) {
     img.style.display = t.thumb ? "block" : "none";
     (document.getElementById("detail-name") as HTMLElement).textContent = t.name;
     (document.getElementById("detail-by") as HTMLElement).textContent = t.author ? `by ${t.author}` : "";
-    const badges = document.getElementById("detail-badges") as HTMLElement;
-    badges.replaceChildren();
-    if (t.size) badges.appendChild(badge(t.size));
-    if (t.version) badges.appendChild(badge(`v${t.version}`, true));
+    (document.getElementById("detail-badges") as HTMLElement).replaceChildren(...badgesFor(t));
+    const tags = document.getElementById("detail-tags") as HTMLElement;
+    tags.replaceChildren(
+      ...(t.tags ?? []).map((tag) => {
+        const li = document.createElement("li");
+        li.textContent = tag;
+        return li;
+      }),
+    );
+    tags.hidden = !t.tags?.length;
     (document.getElementById("detail-desc") as HTMLElement).textContent =
       t.description || "No description provided.";
     const dl = document.getElementById("detail-dl") as HTMLAnchorElement;
@@ -140,9 +159,7 @@ function initTerrains(view: HTMLElement) {
     }
     (card.querySelector(".tcard-name") as HTMLElement).textContent = t.name;
     (card.querySelector(".tcard-by") as HTMLElement).textContent = `by ${t.author}`;
-    const badges = card.querySelector(".tcard-badges") as HTMLElement;
-    if (t.size) badges.appendChild(badge(t.size));
-    if (t.version) badges.appendChild(badge(`v${t.version}`, true));
+    (card.querySelector(".tcard-badges") as HTMLElement).append(...badgesFor(t));
     const dl = card.querySelector(".tcard-dl") as HTMLAnchorElement;
     dl.href = t.download;
     dl.setAttribute("download", t.file);
@@ -156,7 +173,7 @@ function initTerrains(view: HTMLElement) {
     const table = document.createElement("table");
     table.className = "terrain-table";
     table.innerHTML =
-      '<thead><tr><th class="col-thumb"><span class="visually-hidden">Map preview</span></th><th>Name</th><th>Author</th><th>Size</th><th>Version</th></tr></thead>';
+      '<thead><tr><th class="col-thumb"><span class="visually-hidden">Map preview</span></th><th>Name</th><th>Author</th><th>Size</th><th>Tileset</th><th>Version</th></tr></thead>';
     const tbody = document.createElement("tbody");
     items.forEach((t, i) => {
       const tr = document.createElement("tr");
@@ -165,7 +182,7 @@ function initTerrains(view: HTMLElement) {
       tr.setAttribute("aria-label", `${t.name} by ${t.author} — view details`);
       tr.style.animationDelay = `${Math.min(i * 16, 320)}ms`;
       tr.innerHTML =
-        '<td class="col-thumb"></td><td class="t-name"></td><td class="t-author"></td><td class="t-size"></td><td class="t-ver"></td>';
+        '<td class="col-thumb"></td><td class="t-name"></td><td class="t-author"></td><td class="t-size"></td><td class="t-tileset"></td><td class="t-ver"></td>';
       if (t.thumb) {
         const img = document.createElement("img");
         img.src = t.thumb;
@@ -178,6 +195,7 @@ function initTerrains(view: HTMLElement) {
       (tr.querySelector(".t-name") as HTMLElement).textContent = t.name;
       (tr.querySelector(".t-author") as HTMLElement).textContent = t.author;
       (tr.querySelector(".t-size") as HTMLElement).textContent = t.size;
+      (tr.querySelector(".t-tileset") as HTMLElement).textContent = t.tileset;
       (tr.querySelector(".t-ver") as HTMLElement).textContent = t.version ? `v${t.version}` : "";
       openOnKeys(tr, t);
       tbody.appendChild(tr);
@@ -239,14 +257,18 @@ function initTerrains(view: HTMLElement) {
   function applyFilterSort(resetPage = true) {
     const q = (searchEl?.value ?? "").trim().toLowerCase();
     const size = sizeEl?.value ?? "any";
+    const tileset = tilesetEl?.value ?? "any";
     filtered = all.filter((t) => {
       if (size !== "any" && t.size !== size) return false;
+      if (tileset !== "any" && t.tileset !== tileset) return false;
       if (!q) return true;
-      return `${t.name} ${t.author} ${t.description}`.toLowerCase().includes(q);
+      return `${t.name} ${t.author} ${t.description} ${(t.tags ?? []).join(" ")}`
+        .toLowerCase()
+        .includes(q);
     });
-    // Subtle result counter — only while a search or size filter is active.
+    // Subtle result counter — only while a search or one of the filters is active.
     if (resultsEl) {
-      const active = q.length > 0 || size !== "any";
+      const active = q.length > 0 || size !== "any" || tileset !== "any";
       resultsEl.hidden = !active;
       if (active)
         resultsEl.textContent = `${filtered.length} ${filtered.length === 1 ? "terrain" : "terrains"} found`;
@@ -285,6 +307,7 @@ function initTerrains(view: HTMLElement) {
     debounce = window.setTimeout(() => applyFilterSort(), 150);
   });
   sizeEl?.addEventListener("change", () => applyFilterSort());
+  tilesetEl?.addEventListener("change", () => applyFilterSort());
   sortEl?.addEventListener("change", () => applyFilterSort());
   perPageEl?.addEventListener("change", () => {
     perPage = Number(perPageEl.value) || 25;
@@ -296,7 +319,7 @@ function initTerrains(view: HTMLElement) {
 
   applyFilterSort();
 
-  // Deep link: /terrains?id=<hash> opens that terrain's detail view.
+  // Deep link: /terrains?id=<content hash> opens that terrain's detail view.
   const linked = new URLSearchParams(location.search).get("id");
   if (linked) {
     const t = all.find((x) => x.id === linked);

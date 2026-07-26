@@ -4,8 +4,8 @@ import Icon from "../components/Icon.astro";
 import { LINKS } from "../data/links";
 import manifest from "../data/terrains.json";
 
-// The content-addressed ids already in the library — for client-side duplicate
-// detection (a matching id means byte-identical content).
+// The content hashes already in the library — for client-side duplicate detection
+// (a matching hash means the very same map).
 const libJson = JSON.stringify(
   (manifest.terrains as Array<{ id: string }>).map((t) => t.id),
 ).replace(/</g, "\\u003c");
@@ -47,6 +47,10 @@ const libJson = JSON.stringify(
       <input type="hidden" name="terrain_author" id="f-tauthor" />
       <input type="hidden" name="terrain_version" id="f-tversion" />
       <input type="hidden" name="terrain_size" id="f-tsize" />
+      <input type="hidden" name="terrain_tileset" id="f-ttileset" />
+      <input type="hidden" name="terrain_tags" id="f-ttags" />
+      <input type="hidden" name="terrain_game_version" id="f-tgamever" />
+      <input type="hidden" name="terrain_content_hash" id="f-thash" />
       <input type="hidden" name="terrain_file_size" id="f-tfilesize" />
       <input type="hidden" name="terrain_description" id="f-tdesc" />
       <input type="hidden" name="validation_summary" id="f-vsummary" />
@@ -70,14 +74,14 @@ const libJson = JSON.stringify(
 
       <fieldset class="panel">
         <legend>Terrain File</legend>
-        <p class="panel-hint">Drag &amp; drop your terrain below, or browse for a file. Only a single <code>.json</code> terrain may be uploaded.</p>
+        <p class="panel-hint">Drag &amp; drop your terrain below, or browse for a file. Only a single <code>.st2</code> terrain saved by the in-game level editor may be uploaded.</p>
 
         <div class="dropzone" id="dropzone" role="button" tabindex="0" aria-label="Upload terrain file — drag and drop or click to browse">
-          <input type="file" name="attachment" id="file-input" accept=".json,application/json" required class="file-input-hidden" tabindex="-1" />
+          <input type="file" name="attachment" id="file-input" accept=".st2" required class="file-input-hidden" tabindex="-1" />
           <div class="dz-idle" id="dz-idle">
             <Icon name="upload" size={36} class="dz-ico" />
             <p class="dz-title">Drop Terrain Here</p>
-            <p class="dz-sub">Drag &amp; drop your <code>.json</code> terrain file, or click to browse</p>
+            <p class="dz-sub">Drag &amp; drop your <code>.st2</code> terrain file, or click to browse</p>
             <p class="dz-limit">Maximum file size: 10 MB</p>
           </div>
           <div class="dz-summary" id="dz-summary" hidden>
@@ -97,10 +101,11 @@ const libJson = JSON.stringify(
         </div>
 
         <ul class="vchecks" id="vchecks" hidden>
-          <li class="vcheck" id="v-json"><span class="v-ico" aria-hidden="true"></span><div><span class="v-label">Valid JSON</span><p class="v-msg" hidden></p></div></li>
+          <li class="vcheck" id="v-archive"><span class="v-ico" aria-hidden="true"></span><div><span class="v-label">Valid <code>.st2</code> archive</span><p class="v-msg" hidden></p></div></li>
           <li class="vcheck" id="v-meta"><span class="v-ico" aria-hidden="true"></span><div><span class="v-label">Metadata found</span><p class="v-msg" hidden></p></div></li>
           <li class="vcheck" id="v-preview"><span class="v-ico" aria-hidden="true"></span><div><span class="v-label">Preview image found</span><p class="v-msg" hidden></p></div></li>
           <li class="vcheck" id="v-format"><span class="v-ico" aria-hidden="true"></span><div><span class="v-label">Terrain format recognized</span><p class="v-msg" hidden></p></div></li>
+          <li class="vcheck" id="v-hash"><span class="v-ico" aria-hidden="true"></span><div><span class="v-label">Saved by the level editor</span><p class="v-msg" hidden></p></div></li>
           <li class="vcheck" id="v-dupe"><span class="v-ico" aria-hidden="true"></span><div><span class="v-label">New to the library</span><p class="v-msg" hidden></p></div></li>
         </ul>
       </fieldset>

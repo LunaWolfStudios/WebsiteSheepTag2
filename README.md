@@ -40,11 +40,11 @@ Everything the website shows — the terrains you can browse and download, and t
 
 ## 🗺️ Terrains
 
-Terrains are the maps you play on. You can **browse and download** every community terrain on the website's [Terrains page](https://www.sheeptag2.com/terrains) — each one shows its map preview, author, size, version, and description.
+Terrains are the maps you play on — `.st2` files saved by the game's built-in level editor. You can **browse and download** every community terrain on the website's [Terrains page](https://www.sheeptag2.com/terrains) — each one shows its map preview, author, size, tileset, version, and description.
 
 ### Where to put a terrain you downloaded
 
-Drop the downloaded `.json` file into your Sheep Tag 2 **custom** folder, then it'll show up in-game. The folder is different per operating system:
+Drop the downloaded `.st2` file into your Sheep Tag 2 **custom** folder, then it'll show up in-game. The folder is different per operating system:
 
 - **Windows** — `%USERPROFILE%\AppData\LocalLow\Luna Wolf Studios\Sheep Tag 2\Custom\`
 - **macOS** — `~/Library/Application Support/Luna Wolf Studios/Sheep Tag 2/Custom/`
@@ -54,11 +54,12 @@ Drop the downloaded `.json` file into your Sheep Tag 2 **custom** folder, then i
 
 ### Submitting your own terrain
 
-Made a terrain you're proud of? Share it with everyone through the **[terrain submission form](https://www.sheeptag2.com/submit)** — no account needed. Your terrain is validated automatically in the browser (metadata, preview image, map data) before it's sent to us for review.
+Made a terrain you're proud of? Share it with everyone through the **[terrain submission form](https://www.sheeptag2.com/submit)** — no account needed. Your terrain is validated automatically in the browser (archive contents, metadata, preview image, map data) before it's sent to us for review.
 
 A few things to include so it can be accepted:
-- Fill in the terrain's **Name, Author, Version, and Description** (and keep the map preview) in the file.
+- Fill in the terrain's **Name, Author, Version, and Description** (and keep the map preview) in the level editor.
 - Credit yourself as the **Author** — you'll be shown on the site.
+- **Save it from the level editor.** Every `.st2` carries a content hash the editor stamps in, and the form checks it. A map that was unpacked, hand-edited, or rezipped won't match and is rejected.
 - By submitting, you agree to share your terrain under **CC BY 4.0** (see License below).
 
 Comfortable with git instead? You can also [open a pull request](CONTRIBUTING.md) adding your terrain to `terrains/`.

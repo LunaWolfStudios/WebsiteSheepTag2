@@ -2,15 +2,20 @@
 import BaseLayout from "../layouts/BaseLayout.astro";
 import Icon from "../components/Icon.astro";
 import { LINKS } from "../data/links";
+import { TILESETS } from "../lib/st2";
 import manifest from "../data/terrains.json";
 
 interface Terrain {
+  id: string;
   slug: string;
   name: string;
   author: string;
   version: string;
   description: string;
   size: string;
+  tileset: string;
+  tags: string[];
+  gameVersion: string;
   thumb: string | null;
   download: string;
   file: string;
@@ -26,6 +31,9 @@ const dataJson = JSON.stringify(terrains).replace(/</g, "\\u003c");
 const sizeOptions = [...new Set(terrains.map((t) => t.size).filter(Boolean))].sort(
   (a, b) => parseInt(a) - parseInt(b),
 );
+
+// Tilesets in use, in the game's own order rather than alphabetically.
+const tilesetOptions = TILESETS.filter((name) => terrains.some((t) => t.tileset === name));
 
 const osPaths = [
   { os: "windows", name: "Windows", path: "%USERPROFILE%\\AppData\\LocalLow\\Luna Wolf Studios\\Sheep Tag 2\\Custom\\" },
@@ -85,6 +93,13 @@ const osPaths = [
         </select>
       </label>
       <label class="sel-field">
+        <span>Tileset</span>
+        <select id="terrain-tileset" aria-label="Filter by tileset">
+          <option value="any" selected>Any tileset</option>
+          {tilesetOptions.map((s) => <option value={s}>{s}</option>)}
+        </select>
+      </label>
+      <label class="sel-field">
         <span>Sort</span>
         <select id="terrain-sort" aria-label="Sort terrains">
           <option value="name-asc">Name (A–Z)</option>
@@ -131,6 +146,7 @@ const osPaths = [
               <p class="tcard-by">by {t.author}</p>
               <div class="tcard-badges">
                 {t.size && <span class="badge">{t.size}</span>}
+                {t.tileset && <span class="badge badge--sky">{t.tileset}</span>}
                 {t.version && <span class="badge badge--gold">v{t.version}</span>}
               </div>
             </div>
@@ -164,6 +180,7 @@ const osPaths = [
           <h2 id="detail-name"></h2>
           <p class="detail-by" id="detail-by"></p>
           <div class="detail-badges" id="detail-badges"></div>
+          <ul class="detail-tags" id="detail-tags" hidden></ul>
           <p class="detail-desc" id="detail-desc"></p>
           <div class="detail-foot">
             <a class="btn btn--primary" id="detail-dl" download target="_self">
@@ -183,7 +200,7 @@ const osPaths = [
         <Icon name="close" size={24} />
       </button>
       <h2>Where do I put downloaded terrains?</h2>
-      <p>Place downloaded terrain <code>.json</code> files in your Sheep Tag 2 custom data folder (it differs per operating system):</p>
+      <p>Place downloaded terrain <code>.st2</code> files in your Sheep Tag 2 custom data folder (it differs per operating system):</p>
       <ul class="os-list">
         {
           osPaths.map((p) => (
@@ -457,14 +474,15 @@ const osPaths = [
     width: 64px;
   }
   .terrain-table .t-name {
-    width: 42%;
+    width: 34%;
     font-weight: 600;
   }
   .terrain-table .t-author {
-    width: 30%;
+    width: 26%;
     color: var(--st-ink-muted);
   }
   .terrain-table .t-size,
+  .terrain-table .t-tileset,
   .terrain-table .t-ver {
     white-space: nowrap;
     color: var(--st-ink-muted);
@@ -586,7 +604,26 @@ const osPaths = [
   }
   .detail-badges {
     display: flex;
+    flex-wrap: wrap;
     gap: 0.4rem;
+  }
+  .detail-tags {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+  }
+  .detail-tags[hidden] {
+    display: none;
+  }
+  .detail-tags li {
+    font-size: 0.78rem;
+    padding: 0.2em 0.65em;
+    border-radius: var(--st-radius-pill);
+    border: 1px solid var(--st-border);
+    background: var(--st-bg-2);
+    color: var(--st-ink-muted);
   }
   .detail-desc {
     color: var(--st-ink-muted);

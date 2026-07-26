@@ -1,12 +1,20 @@
 /**
  * Prebuild data generator (WEBSITE_PROPOSAL.md §7 & §8).
- * - farms.json      : parsed from farms/descriptions.tsv, joined to icons, curated order.
- * - terrains.list.json : lightweight fallback list (filenames + byte sizes ONLY — no
- *   images, no metadata). The Terrains page parses previews/metadata live at runtime.
+ * - farms.json    : parsed from farms/descriptions.tsv, joined to icons, curated order.
+ * - terrains.json : the terrain manifest — metadata read out of every .st2 archive in
+ *   terrains/, with previews written to thumbnails and the archives copied into public/.
  */
 import { readFile, writeFile, readdir, stat, mkdir, copyFile, rm } from "node:fs/promises";
-import { createHash } from "node:crypto";
 import path from "node:path";
+import {
+  EXTENSION,
+  St2Error,
+  checkMetadata,
+  checkTerrain,
+  readArchive,
+  tilesetName,
+  verifyContentHash,
+} from "../src/lib/st2.ts";
 
 const ROOT = process.cwd();
 const TSV = path.join(ROOT, "farms", "descriptions.tsv");
@@ -94,40 +102,13 @@ async function buildFarms() {
   console.log(`[build] farms.json — ${farms.length} farms`);
 }
 
-interface TerrainMeta {
-  Name?: string;
-  Author?: string;
-  Version?: unknown;
-  Description?: string;
-  PreviewImage?: string;
-}
-
-/** Extract just the Metadata object + Width/Length without parsing the huge TileData array. */
-function parseTerrain(text: string): { m: TerrainMeta; width: number | null; length: number | null } {
-  const ki = text.indexOf('"Metadata"');
-  if (ki < 0) throw new Error("no Metadata block");
-  const open = text.indexOf("{", ki + 10);
-  let depth = 0, inStr = false, esc = false, end = -1;
-  for (let i = open; i < text.length; i++) {
-    const ch = text[i];
-    if (inStr) {
-      if (esc) esc = false;
-      else if (ch === "\\") esc = true;
-      else if (ch === '"') inStr = false;
-    } else if (ch === '"') inStr = true;
-    else if (ch === "{") depth++;
-    else if (ch === "}") { depth--; if (depth === 0) { end = i + 1; break; } }
-  }
-  if (end === -1) throw new Error("Metadata not closed");
-  const m = JSON.parse(text.slice(open, end)) as TerrainMeta;
-  const wl = text.slice(end, end + 400).match(/"Width":(\d+),"Length":(\d+)/);
-  return { m, width: wl ? +wl[1] : null, length: wl ? +wl[2] : null };
-}
-
 /**
- * Build the terrain manifest: parse each file's metadata, write its preview to a
- * thumbnail, and copy the file into public/ for download. Runs on every build so a
+ * Build the terrain manifest: read each archive's metadata, write its preview to a
+ * thumbnail, and copy the archive into public/ for download. Runs on every build so a
  * merged/deployed terrain is picked up automatically.
+ *
+ * A map whose content hash doesn't verify was hand-edited outside the level editor, so it is
+ * left out — the same bar the submission form holds uploads to.
  */
 async function buildTerrains() {
   const THUMBS = path.join(PUBLIC_DIR, "terrain-thumbs");
@@ -140,26 +121,41 @@ async function buildTerrains() {
   await mkdir(DOWNLOADS, { recursive: true });
 
   const files = (await readdir(TERRAINS_DIR))
-    .filter((f) => f.toLowerCase().endsWith(".json"))
+    .filter((f) => f.toLowerCase().endsWith(EXTENSION))
     .sort((a, b) => a.localeCompare(b));
 
   const seen = new Set<string>();
   const terrains = [];
   let thumbs = 0;
+  let skipped = 0;
 
   for (const file of files) {
     const full = path.join(TERRAINS_DIR, file);
-    const buf = await readFile(full);
-    const text = buf.toString("utf8");
-    let parsed;
+    const skip = (why: string) => {
+      console.warn(`[build] skipping ${file}: ${why}`);
+      skipped++;
+    };
+
+    let archive;
     try {
-      parsed = parseTerrain(text);
+      archive = await readArchive(await readFile(full));
     } catch (e) {
-      console.warn(`[build] skipping ${file}: ${(e as Error).message}`);
+      skip(e instanceof St2Error ? e.message : `unreadable archive (${(e as Error).message})`);
       continue;
     }
-    const m = parsed.m;
-    let slug = slugify(m.Name || file.replace(/\.json$/i, ""));
+
+    const m = archive.metadata;
+    const problem = checkMetadata(m) ?? checkTerrain(archive);
+    if (problem) {
+      skip(problem);
+      continue;
+    }
+    if (!(await verifyContentHash(archive))) {
+      skip("content hash doesn't match — the map was edited outside the level editor");
+      continue;
+    }
+
+    let slug = slugify(m.Name || file.replace(/\.st2$/i, ""));
     while (seen.has(slug)) slug += "-x";
     seen.add(slug);
 
@@ -172,19 +168,22 @@ async function buildTerrains() {
 
     terrains.push({
       slug,
-      name: m.Name ?? file.replace(/\.json$/i, ""),
-      author: m.Author ?? "Unknown",
+      name: String(m.Name),
+      author: String(m.Author),
       version: String(m.Version ?? ""),
       description: m.Description ?? "",
-      size: parsed.width && parsed.length ? `${parsed.width}×${parsed.length}` : "",
+      size: `${archive.terrain.Width}×${archive.terrain.Length}`,
+      tileset: tilesetName(m.TilesetId),
+      tags: Array.isArray(m.Tags) ? m.Tags.map(String) : [],
+      gameVersion: m.SupportedGameVersion ?? "",
       thumb: m.PreviewImage ? `/terrain-thumbs/${slug}.jpg` : null,
       download: `/terrains/${encodeURIComponent(file)}`,
       file,
       bytes,
       fileSize: humanBytes(bytes),
-      // Content-addressed id (same JSON bytes → same id): stable shareable URLs
-      // and fast duplicate detection. A new version of a map yields a new id.
-      id: createHash("sha256").update(buf).digest("hex").slice(0, 16),
+      // The level editor's content hash doubles as the id: content-addressed, so it gives
+      // stable shareable URLs and exact duplicate detection, and a re-save yields a new id.
+      id: String(m.ContentHash),
     });
   }
 
@@ -193,7 +192,10 @@ async function buildTerrains() {
     path.join(DATA_DIR, "terrains.json"),
     JSON.stringify({ count: terrains.length, terrains }, null, 2),
   );
-  console.log(`[build] terrains.json — ${terrains.length} terrains, ${thumbs} thumbnails, downloads copied`);
+  console.log(
+    `[build] terrains.json — ${terrains.length} terrains, ${thumbs} thumbnails, downloads copied` +
+      (skipped ? `, ${skipped} skipped` : ""),
+  );
 }
 
 /** Serve the standalone easter-egg page from public/ (its deps live in public/history + public/assets). */

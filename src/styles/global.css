@@ -158,6 +158,11 @@ a:hover {
   color: var(--st-gold);
   border-color: color-mix(in srgb, var(--st-gold) 30%, transparent);
 }
+.badge--sky {
+  background: color-mix(in srgb, var(--st-sky) 14%, transparent);
+  color: var(--st-sky);
+  border-color: color-mix(in srgb, var(--st-sky) 28%, transparent);
+}
 
 /* Dialogs — restore UA centering (the `* { margin: 0 }` reset removes the
    default `margin: auto` that centers <dialog>), and animate them in. */

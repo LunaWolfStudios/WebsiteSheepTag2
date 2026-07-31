@@ -22,7 +22,12 @@ export const ENTRY_NAMES = [META_ENTRY, TERRAIN_ENTRY, SCENERY_ENTRY] as const;
  */
 const CONTENT_HASH_SALT = "LunaWolfStudios.SheepTag2.MapArchive";
 
-/** Tileset display names, indexed by `MapMetadata.TilesetId`. */
+/**
+ * Tileset display names, indexed by `MapMetadata.TilesetId`.
+ *
+ * The id is a position in the game's `Resources/TilesetLibrary.asset`, so this list must stay in
+ * that same order — append new tilesets, never reorder. Names are the tileset assets' own names.
+ */
 export const TILESETS = [
   "Pasture",
   "Meadow",
@@ -39,6 +44,10 @@ export const TILESETS = [
   "Ruin",
   "Caldera",
   "Legacy",
+  "Tundra",
+  "Taiga",
+  "Snowdrift",
+  "Fire and Ice",
 ] as const;
 
 /** Display name for a tileset id, or "" when the id is missing or from a newer game build. */

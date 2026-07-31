@@ -63,6 +63,11 @@ export const ICONS: Record<string, IconDef> = {
   upload: { stroke: true, path: "M12 15V3M7 8l5-5 5 5M5 21h14" },
   chevronLeft: { stroke: true, path: "M15 6l-6 6 6 6" },
   chevronRight: { stroke: true, path: "M9 6l6 6-6 6" },
+  chevronDown: { stroke: true, path: "M6 9l6 6 6-6" },
+  expand: {
+    stroke: true,
+    path: "M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3",
+  },
   play: { path: "M8 5v14l11-7z" },
   list: { stroke: true, path: "M9 6h11M9 12h11M9 18h11M4.5 6h.01M4.5 12h.01M4.5 18h.01" },
   grid: { stroke: true, path: "M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z" },

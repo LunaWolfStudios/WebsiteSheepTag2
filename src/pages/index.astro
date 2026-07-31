@@ -1,6 +1,7 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
 import Hero from "../components/Hero.astro";
+import Screenshots from "../components/Screenshots.astro";
 import { SITE } from "../data/site";
 import { LINKS } from "../data/links";
 
@@ -28,4 +29,5 @@ const jsonLd = {
     set:html={JSON.stringify(jsonLd)}
   />
   <Hero />
+  <Screenshots />
 </BaseLayout>

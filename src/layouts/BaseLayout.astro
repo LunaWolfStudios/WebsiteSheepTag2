@@ -36,8 +36,9 @@ const ogImage = new URL(image, SITE.url).href;
     {/* Internal navigation stays in this tab; external links and the legal pages set target="_blank" explicitly. */}
     <title>{title}</title>
     <meta name="description" content={description} />
-    <link rel="canonical" href={canonical} />
-    {noindex && <meta name="robots" content="noindex" />}
+    {/* No canonical on noindex pages — the 404 is served for every bad path,
+        so it would otherwise point at whatever URL missed. */}
+    {noindex ? <meta name="robots" content="noindex" /> : <link rel="canonical" href={canonical} />}
     <meta name="theme-color" content="#15180f" />
 
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />

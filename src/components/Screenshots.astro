@@ -1,0 +1,653 @@
+---
+/**
+ * Home-page screenshot gallery (WEBSITE_PROPOSAL.md §6 — Steam-style).
+ *
+ * Stage carousel (one shot at a time, native scroll-snap so touch swipe works
+ * for free) + a thumbnail filmstrip. Clicking the stage opens a full-screen
+ * <dialog> viewer with arrow buttons, ←/→/Home/End keys and swipe.
+ *
+ * The viewer reuses the stage's `srcset` with `sizes="100vw"`, so the browser
+ * picks a bigger candidate for full-screen than it downloaded for the stage —
+ * no second set of derivatives, no extra bytes until someone enlarges a shot.
+ */
+import { Image } from "astro:assets";
+import type { ImageMetadata } from "astro";
+import Icon from "./Icon.astro";
+import { SCREENSHOTS } from "../data/screenshots";
+
+const modules = import.meta.glob<ImageMetadata>("../../screenshots/*.png", {
+  eager: true,
+  import: "default",
+});
+const byFile: Record<string, ImageMetadata> = {};
+for (const [p, img] of Object.entries(modules)) {
+  const file = p.split("/").pop();
+  if (file) byFile[file] = img;
+}
+
+const shots = SCREENSHOTS.map((s) => {
+  const img = byFile[s.file];
+  if (!img) throw new Error(`Screenshot "${s.file}" is listed in src/data/screenshots.ts but missing from screenshots/`);
+  return { ...s, img };
+});
+
+// Stage tops out around 1136px (--st-maxw minus the wrap padding); the wider
+// candidates exist for the full-screen viewer and high-DPI screens.
+const STAGE_WIDTHS = [768, 1280, 1920, 2560];
+const STAGE_SIZES = "(max-width: 1264px) 100vw, 1136px";
+---
+
+<section class="section shots" id="screenshots" aria-labelledby="shots-title">
+  <div class="wrap">
+    <header class="shots-head">
+      <h2 id="shots-title">Screenshots</h2>
+      <p class="shots-sub">Straight from the pasture &mdash; click any shot to enlarge.</p>
+    </header>
+
+    <div class="shots-stage">
+      <ul
+        class="shots-track"
+        id="shots-track"
+        role="group"
+        aria-roledescription="carousel"
+        aria-label="Sheep Tag 2 screenshots"
+      >
+        {
+          shots.map((s, i) => (
+            <li
+              class="shot"
+              role="group"
+              aria-roledescription="slide"
+              aria-label={`${i + 1} of ${shots.length}`}
+            >
+              <button
+                type="button"
+                class="shot-btn"
+                data-caption={s.caption}
+                aria-label={`Enlarge screenshot ${i + 1} of ${shots.length}: ${s.caption}`}
+              >
+                <Image
+                  src={s.img}
+                  alt={s.alt}
+                  class="shot-img"
+                  widths={STAGE_WIDTHS}
+                  sizes={STAGE_SIZES}
+                  loading="lazy"
+                  decoding="async"
+                />
+                <span class="shot-zoom" aria-hidden="true">
+                  <Icon name="expand" size={18} />
+                </span>
+              </button>
+            </li>
+          ))
+        }
+      </ul>
+
+      <button type="button" class="stage-arrow prev" id="shots-prev" aria-label="Previous screenshot">
+        <Icon name="chevronLeft" size={30} />
+      </button>
+      <button type="button" class="stage-arrow next" id="shots-next" aria-label="Next screenshot">
+        <Icon name="chevronRight" size={30} />
+      </button>
+      <p class="stage-counter" id="shots-counter" aria-hidden="true">1 / {shots.length}</p>
+    </div>
+
+    <p class="shots-caption" id="shots-caption" aria-live="polite">{shots[0].caption}</p>
+
+    <ul class="shots-thumbs" id="shots-thumbs" aria-label="Choose a screenshot">
+      {
+        shots.map((s, i) => (
+          <li>
+            <button
+              type="button"
+              class="thumb"
+              aria-label={`Show screenshot ${i + 1}: ${s.caption}`}
+              aria-current={i === 0 ? "true" : undefined}
+            >
+              <Image
+                src={s.img}
+                alt=""
+                class="thumb-img"
+                width={132}
+                height={74}
+                densities={[2]}
+                loading="lazy"
+              />
+            </button>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>
+
+<dialog id="shots-viewer" class="viewer" aria-label="Screenshot viewer">
+  <div class="viewer-inner">
+    <figure class="viewer-figure">
+      <img id="viewer-img" class="viewer-img" alt="" sizes="100vw" />
+      <figcaption class="viewer-bar">
+        <span class="viewer-caption" id="viewer-caption"></span>
+        <span class="viewer-counter" id="viewer-counter"></span>
+      </figcaption>
+    </figure>
+
+    <button type="button" class="viewer-arrow prev" id="viewer-prev" aria-label="Previous screenshot">
+      <Icon name="chevronLeft" size={34} />
+    </button>
+    <button type="button" class="viewer-arrow next" id="viewer-next" aria-label="Next screenshot">
+      <Icon name="chevronRight" size={34} />
+    </button>
+    <button type="button" class="viewer-close" id="viewer-close" aria-label="Close viewer">
+      <Icon name="close" size={26} />
+    </button>
+  </div>
+</dialog>
+
+<style>
+  .shots {
+    background:
+      radial-gradient(120% 90% at 50% 0%, color-mix(in srgb, var(--st-green-deep) 18%, transparent), transparent 62%),
+      var(--st-bg-2);
+    border-top: 1px solid var(--st-border);
+    border-bottom: 1px solid var(--st-border);
+  }
+  .shots-head {
+    text-align: center;
+    margin-bottom: clamp(1.4rem, 3vw, 2.2rem);
+  }
+  .shots-head h2 {
+    font-size: clamp(1.7rem, 1.2rem + 1.6vw, 2.4rem);
+  }
+  .shots-sub {
+    color: var(--st-ink-muted);
+    margin-top: 0.4rem;
+  }
+
+  /* Stage ------------------------------------------------------------- */
+  .shots-stage {
+    position: relative;
+    border-radius: var(--st-radius-lg);
+    overflow: hidden;
+    background: #0b0d08;
+    border: 1px solid var(--st-border);
+    box-shadow: var(--st-shadow-lg);
+  }
+  .shots-track {
+    position: relative; /* offsetParent for the slides — the script measures against it */
+    display: flex;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+  }
+  .shots-track::-webkit-scrollbar {
+    display: none;
+  }
+  .shot {
+    flex: 0 0 100%;
+    scroll-snap-align: center;
+    scroll-snap-stop: always;
+  }
+  .shot-btn {
+    display: block;
+    position: relative;
+    width: 100%;
+    padding: 0;
+    border: none;
+    background: none;
+    cursor: zoom-in;
+    line-height: 0;
+  }
+  .shot-img {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+  }
+  /* Enlarge hint — always legible on touch, brightens on hover/focus. */
+  .shot-zoom {
+    position: absolute;
+    top: 0.8rem;
+    right: 0.8rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: rgba(8, 10, 6, 0.55);
+    color: var(--st-ink);
+    opacity: 0.75;
+    transition: opacity 0.15s ease, background-color 0.15s ease, transform 0.15s ease;
+  }
+  .shot-btn:hover .shot-zoom,
+  .shot-btn:focus-visible .shot-zoom {
+    opacity: 1;
+    background: rgba(8, 10, 6, 0.8);
+    transform: scale(1.08);
+  }
+
+  .stage-arrow {
+    position: absolute;
+    top: 50%;
+    translate: 0 -50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    border: 1px solid rgba(244, 239, 225, 0.18);
+    border-radius: 50%;
+    background: rgba(8, 10, 6, 0.55);
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
+    color: var(--st-ink);
+    cursor: pointer;
+    transition: background-color 0.15s ease, color 0.15s ease, transform 0.15s ease;
+  }
+  .stage-arrow.prev {
+    left: 0.85rem;
+  }
+  .stage-arrow.next {
+    right: 0.85rem;
+  }
+  .stage-arrow:hover {
+    background: rgba(8, 10, 6, 0.85);
+    color: var(--st-green-bright);
+    transform: translateY(0) scale(1.06);
+  }
+  .stage-counter {
+    position: absolute;
+    right: 0.9rem;
+    bottom: 0.9rem;
+    padding: 0.25em 0.7em;
+    border-radius: var(--st-radius-pill);
+    background: rgba(8, 10, 6, 0.65);
+    color: var(--st-ink);
+    font-family: var(--font-display);
+    font-size: 0.85rem;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .shots-caption {
+    margin-top: 0.9rem;
+    text-align: center;
+    color: var(--st-ink-muted);
+    text-wrap: pretty;
+    min-height: 1.6em;
+  }
+
+  /* Filmstrip --------------------------------------------------------- */
+  .shots-thumbs {
+    display: flex;
+    gap: 0.5rem;
+    margin: 1rem 0 0;
+    padding: 0.15rem 0.15rem 0.6rem;
+    list-style: none;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: thin;
+    scrollbar-color: var(--st-border) transparent;
+    /* `safe` so the first thumbs stay reachable once the strip overflows;
+       browsers without it fall back to flex-start, which is the same guarantee. */
+    justify-content: safe center;
+  }
+  /* Without this the thumbs shrink to fit instead of overflowing — and a
+     filmstrip that never scrolls is just nine slivers. */
+  .shots-thumbs > li {
+    flex: 0 0 auto;
+  }
+  .thumb {
+    display: block;
+    padding: 0;
+    border: 2px solid transparent;
+    border-radius: 10px;
+    background: none;
+    overflow: hidden;
+    cursor: pointer;
+    opacity: 0.5;
+    line-height: 0;
+    transition: opacity 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+  }
+  /* Sized so the current set fits the 1200px wrap without a scrollbar; the
+     strip still scrolls once more shots are added. */
+  .thumb-img {
+    width: 112px;
+    height: 63px;
+    object-fit: cover;
+    border-radius: 8px;
+  }
+  .thumb:hover {
+    opacity: 0.85;
+    transform: translateY(-2px);
+  }
+  .thumb[aria-current="true"] {
+    opacity: 1;
+    border-color: var(--st-gold);
+  }
+
+  /* Full-screen viewer ------------------------------------------------ */
+  /* Full-bleed: `dialog:modal` is already fixed at inset 0, so 100% fills the
+     viewport. `margin: 0` overrides the global `dialog { margin: auto }`. */
+  .viewer {
+    width: 100%;
+    max-width: 100%;
+    height: 100%;
+    max-height: 100%;
+    margin: 0;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: var(--st-ink);
+    overflow: hidden;
+  }
+  .viewer::backdrop {
+    background: rgba(4, 6, 3, 0.94);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+  }
+  /* The global dialog entrance nudges upward; a full-screen viewer wants a
+     straight zoom instead. */
+  @media (prefers-reduced-motion: no-preference) {
+    .viewer[open] {
+      animation: viewer-in 0.2s ease-out;
+    }
+    @keyframes viewer-in {
+      from {
+        opacity: 0;
+        transform: scale(0.97);
+      }
+    }
+  }
+  .viewer-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: grid;
+    place-items: center;
+    padding: clamp(0.75rem, 3vw, 2.5rem);
+    /* Clicks that miss the figure fall through to the dialog's close handler. */
+  }
+  .viewer-figure {
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+    max-width: min(100%, calc((100dvh - 9rem) * 16 / 9));
+  }
+  .viewer-img {
+    width: 100%;
+    height: auto;
+    max-height: calc(100dvh - 9rem);
+    object-fit: contain;
+    border-radius: var(--st-radius);
+    background: #000;
+    box-shadow: var(--st-shadow-lg);
+  }
+  .viewer-bar {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1.2rem;
+  }
+  .viewer-caption {
+    color: var(--st-ink-muted);
+    text-wrap: pretty;
+  }
+  .viewer-counter {
+    flex-shrink: 0;
+    font-family: var(--font-display);
+    color: var(--st-ink-subtle);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .viewer-arrow,
+  .viewer-close {
+    position: absolute;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(244, 239, 225, 0.16);
+    border-radius: 50%;
+    background: rgba(20, 24, 15, 0.72);
+    color: var(--st-ink);
+    cursor: pointer;
+    transition: background-color 0.15s ease, color 0.15s ease, transform 0.15s ease;
+  }
+  .viewer-arrow:hover,
+  .viewer-close:hover {
+    background: var(--st-surface-hover);
+    color: var(--st-green-bright);
+  }
+  .viewer-arrow {
+    top: 50%;
+    translate: 0 -50%;
+    width: 56px;
+    height: 56px;
+  }
+  .viewer-arrow.prev {
+    left: clamp(0.5rem, 2vw, 1.75rem);
+  }
+  .viewer-arrow.next {
+    right: clamp(0.5rem, 2vw, 1.75rem);
+  }
+  .viewer-close {
+    top: clamp(0.5rem, 2vw, 1.5rem);
+    right: clamp(0.5rem, 2vw, 1.5rem);
+    width: 46px;
+    height: 46px;
+  }
+  .viewer-close:hover {
+    transform: rotate(90deg);
+  }
+
+  @media (max-width: 700px) {
+    .thumb-img {
+      width: 104px;
+      height: 58px;
+    }
+    .stage-arrow {
+      width: 42px;
+      height: 42px;
+    }
+    .stage-arrow.prev {
+      left: 0.5rem;
+    }
+    .stage-arrow.next {
+      right: 0.5rem;
+    }
+    .viewer-arrow {
+      width: 44px;
+      height: 44px;
+    }
+    .viewer-bar {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.25rem;
+    }
+    .viewer-figure {
+      max-width: min(100%, calc((100dvh - 11rem) * 16 / 9));
+    }
+    .viewer-img {
+      max-height: calc(100dvh - 11rem);
+    }
+  }
+</style>
+
+<script>
+  const track = document.getElementById("shots-track");
+  const viewer = document.getElementById("shots-viewer") as HTMLDialogElement | null;
+  const viewerImg = document.getElementById("viewer-img") as HTMLImageElement | null;
+
+  if (track && viewer && viewerImg) {
+    const slides = Array.from(track.querySelectorAll<HTMLElement>(".shot"));
+    const stageBtns = Array.from(track.querySelectorAll<HTMLButtonElement>(".shot-btn"));
+    const stageImgs = Array.from(track.querySelectorAll<HTMLImageElement>(".shot-img"));
+    const thumbsEl = document.getElementById("shots-thumbs")!;
+    const thumbs = Array.from(thumbsEl.querySelectorAll<HTMLButtonElement>(".thumb"));
+    const captionEl = document.getElementById("shots-caption")!;
+    const counterEl = document.getElementById("shots-counter")!;
+    const viewerCaption = document.getElementById("viewer-caption")!;
+    const viewerCounter = document.getElementById("viewer-counter")!;
+    const total = slides.length;
+
+    const captions = stageBtns.map((b) => b.dataset.caption ?? "");
+
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const behavior = (): ScrollBehavior => (reduced.matches ? "auto" : "smooth");
+    const wrap = (i: number) => (i + total) % total;
+
+    let index = 0;
+
+    // Slide geometry is cached so the scroll handler reads no layout at all.
+    let centres: number[] = [];
+    let trackWidth = 0;
+    const measure = () => {
+      trackWidth = track.clientWidth;
+      centres = slides.map((el) => el.offsetLeft + el.offsetWidth / 2);
+    };
+    measure();
+    new ResizeObserver(measure).observe(track);
+
+    /** Nearest slide to the middle of the viewport — survives gaps and rubber-banding. */
+    const indexFromScroll = () => {
+      const mid = track.scrollLeft + trackWidth / 2;
+      let best = 0;
+      let bestDist = Infinity;
+      centres.forEach((c, i) => {
+        const dist = Math.abs(c - mid);
+        if (dist < bestDist) {
+          bestDist = dist;
+          best = i;
+        }
+      });
+      return best;
+    };
+
+    const centerIn = (container: HTMLElement, el: HTMLElement, how: ScrollBehavior) => {
+      const left = el.offsetLeft - (container.clientWidth - el.offsetWidth) / 2;
+      container.scrollTo({ left, behavior: how });
+    };
+
+    const setIndex = (i: number) => {
+      index = i;
+      captionEl.textContent = captions[i];
+      counterEl.textContent = `${i + 1} / ${total}`;
+      thumbs.forEach((t, n) =>
+        n === i ? t.setAttribute("aria-current", "true") : t.removeAttribute("aria-current"),
+      );
+      centerIn(thumbsEl, thumbs[i], behavior());
+      if (viewer.open) syncViewer();
+    };
+
+    const goTo = (i: number, how: ScrollBehavior = behavior()) => {
+      centerIn(track, slides[i], how);
+      setIndex(i);
+    };
+
+    // Wrapping around would otherwise smooth-scroll the whole strip — jump instead.
+    const step = (delta: number) => {
+      const next = wrap(index + delta);
+      const wrapped = next !== index + delta;
+      goTo(next, wrapped ? "auto" : behavior());
+    };
+
+    // Synchronous on purpose: rAF stalls while the page isn't being painted,
+    // which would leave the caption stale after a Tab-driven scroll.
+    track.addEventListener(
+      "scroll",
+      () => {
+        const i = indexFromScroll();
+        if (i !== index) setIndex(i);
+      },
+      { passive: true },
+    );
+
+    document.getElementById("shots-prev")?.addEventListener("click", () => step(-1));
+    document.getElementById("shots-next")?.addEventListener("click", () => step(1));
+    thumbs.forEach((t, i) => t.addEventListener("click", () => goTo(i)));
+
+    // ---- Full-screen viewer -------------------------------------------------
+    /** Same derivatives as the stage, but `sizes="100vw"` lets the browser pick a bigger one. */
+    const syncViewer = () => {
+      const src = stageImgs[index];
+      viewerImg.srcset = src.srcset;
+      viewerImg.src = src.src;
+      viewerImg.alt = src.alt;
+      viewerCaption.textContent = captions[index];
+      viewerCounter.textContent = `${index + 1} / ${total}`;
+    };
+
+    const openViewer = (i: number) => {
+      if (typeof viewer.showModal !== "function") return;
+      goTo(i, "auto");
+      syncViewer();
+      viewer.showModal();
+      document.body.style.overflow = "hidden";
+    };
+
+    const closeViewer = () => {
+      if (viewer.open) viewer.close();
+    };
+
+    stageBtns.forEach((btn, i) =>
+      btn.addEventListener("click", (e) => {
+        if (typeof viewer.showModal !== "function") return; // no <dialog>: leave the button inert
+        e.preventDefault();
+        openViewer(i);
+      }),
+    );
+
+    document.getElementById("viewer-prev")?.addEventListener("click", () => step(-1));
+    document.getElementById("viewer-next")?.addEventListener("click", () => step(1));
+    document.getElementById("viewer-close")?.addEventListener("click", closeViewer);
+
+    // Clicking the dimmed area around the image closes, like every other viewer.
+    viewer.addEventListener("click", (e) => {
+      const target = e.target as HTMLElement;
+      if (target === viewer || target.classList.contains("viewer-inner")) closeViewer();
+    });
+
+    viewer.addEventListener("close", () => {
+      document.body.style.overflow = "";
+      stageBtns[index]?.focus({ preventScroll: true });
+    });
+
+    document.addEventListener("keydown", (e) => {
+      if (!viewer.open || e.altKey || e.ctrlKey || e.metaKey) return;
+      if (e.key === "ArrowLeft") step(-1);
+      else if (e.key === "ArrowRight") step(1);
+      else if (e.key === "Home") goTo(0, "auto");
+      else if (e.key === "End") goTo(total - 1, "auto");
+      // The dialog closes itself on Esc, but only from a real key press — do it
+      // here too so the shortcut never depends on the UA's close watcher.
+      else if (e.key === "Escape") closeViewer();
+      else return;
+      e.preventDefault();
+    });
+
+    // Swipe between shots inside the viewer (the stage already scroll-snaps).
+    let touchX: number | null = null;
+    viewer.addEventListener(
+      "touchstart",
+      (e) => {
+        touchX = e.changedTouches[0]?.clientX ?? null;
+      },
+      { passive: true },
+    );
+    viewer.addEventListener(
+      "touchend",
+      (e) => {
+        const end = e.changedTouches[0]?.clientX;
+        if (touchX === null || end === undefined) return;
+        const dx = end - touchX;
+        touchX = null;
+        if (Math.abs(dx) > 45) step(dx < 0 ? 1 : -1);
+      },
+      { passive: true },
+    );
+  }
+</script>

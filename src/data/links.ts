@@ -16,8 +16,8 @@ export const LINKS = {
   indiedb: "https://www.indiedb.com/games/sheep-tag-2",
 
   // Hero trailer (confirmed current) — theater lightbox (§6.3)
-  trailer: "https://www.youtube.com/watch?v=JxZhfs2ZCf0",
-  trailerId: "JxZhfs2ZCf0",
+  trailer: "https://www.youtube.com/watch?v=9eJ0F5nIWL0",
+  trailerId: "9eJ0F5nIWL0",
 
   // Terrain submission portal (§9)
   submitPage: "/submit",

@@ -33,6 +33,7 @@ import Icon from "./Icon.astro";
         class="btn btn--secondary"
         id="trailer-open"
         href={LINKS.trailer}
+        data-video-id={LINKS.trailerId}
         target="_blank"
         rel="noopener"
       >
@@ -40,6 +41,11 @@ import Icon from "./Icon.astro";
       </a>
     </div>
   </div>
+
+  <a class="hero-scroll" href="#screenshots">
+    <span>Screenshots</span>
+    <Icon name="chevronDown" size={22} class="hero-scroll-chev" />
+  </a>
 
   <dialog id="trailer-dialog" class="theater" aria-label="Sheep Tag 2 official trailer">
     <button type="button" class="theater-close" id="trailer-close" aria-label="Close trailer">
@@ -139,6 +145,53 @@ import Icon from "./Icon.astro";
     background: rgba(10, 12, 8, 0.35);
     -webkit-backdrop-filter: blur(4px);
     backdrop-filter: blur(4px);
+  }
+
+  /* The hero fills the viewport, so the gallery below it needs a hint. */
+  .hero-scroll {
+    position: absolute;
+    left: 50%;
+    bottom: 1.4rem;
+    translate: -50% 0;
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.1rem;
+    padding: 0.4rem 0.9rem;
+    font-family: var(--font-display);
+    font-size: 0.82rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    text-decoration: none;
+    color: var(--st-ink);
+    opacity: 0.7;
+    text-shadow: 0 1px 6px rgba(0, 0, 0, 0.9);
+    transition: opacity 0.15s ease, color 0.15s ease;
+  }
+  .hero-scroll:hover {
+    opacity: 1;
+    color: var(--st-green-bright);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .hero-scroll-chev {
+      animation: hero-nudge 2.4s ease-in-out infinite;
+    }
+    @keyframes hero-nudge {
+      0%,
+      60%,
+      100% {
+        transform: translateY(0);
+      }
+      30% {
+        transform: translateY(4px);
+      }
+    }
+  }
+  /* Short landscape windows have no room for it under the CTAs. */
+  @media (max-height: 560px) {
+    .hero-scroll {
+      display: none;
+    }
   }
 
   /* Animated logo — cartoon "breathing" tween (WEBSITE_PROPOSAL.md §6.3.1).
@@ -254,7 +307,8 @@ import Icon from "./Icon.astro";
   const dialog = document.getElementById("trailer-dialog") as HTMLDialogElement | null;
   const frame = document.getElementById("trailer-frame");
   const closeBtn = document.getElementById("trailer-close");
-  const videoId = "JxZhfs2ZCf0";
+  // Single source of truth is LINKS.trailerId, handed over on the button.
+  const videoId = openLink?.dataset.videoId ?? "";
 
   if (openLink && dialog && frame && typeof dialog.showModal === "function") {
     // Unmount the iframe to stop playback. Done explicitly in every close path

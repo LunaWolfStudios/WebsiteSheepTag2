@@ -3,8 +3,13 @@
  * Home-page screenshot gallery (WEBSITE_PROPOSAL.md §6 — Steam-style).
  *
  * Stage carousel (one shot at a time, native scroll-snap so touch swipe works
- * for free) + a thumbnail filmstrip. Clicking the stage opens a full-screen
- * <dialog> viewer with arrow buttons, ←/→/Home/End keys and swipe.
+ * for free) + a thumbnail filmstrip. The enlarge button opens a full-screen
+ * <dialog> viewer with arrow buttons, ←/→/Home/End keys, swipe and pinch-zoom.
+ *
+ * Enlarging is deliberately on its own button rather than the whole frame: on
+ * a phone the stage is also the swipe surface, so a tap-anywhere target turns
+ * every hesitant swipe into an accidental full-screen. Pointers that can hover
+ * have no such conflict, so there the whole frame stays clickable.
  *
  * The viewer reuses the stage's `srcset` with `sizes="100vw"`, so the browser
  * picks a bigger candidate for full-screen than it downloaded for the stage —
@@ -41,7 +46,6 @@ const STAGE_SIZES = "(max-width: 1264px) 100vw, 1136px";
   <div class="wrap">
     <header class="shots-head">
       <h2 id="shots-title">Screenshots</h2>
-      <p class="shots-sub">Straight from the pasture &mdash; click any shot to enlarge.</p>
     </header>
 
     <div class="shots-stage">
@@ -60,12 +64,7 @@ const STAGE_SIZES = "(max-width: 1264px) 100vw, 1136px";
               aria-roledescription="slide"
               aria-label={`${i + 1} of ${shots.length}`}
             >
-              <button
-                type="button"
-                class="shot-btn"
-                data-caption={s.caption}
-                aria-label={`Enlarge screenshot ${i + 1} of ${shots.length}: ${s.caption}`}
-              >
+              <div class="shot-frame" data-caption={s.caption}>
                 <Image
                   src={s.img}
                   alt={s.alt}
@@ -74,11 +73,16 @@ const STAGE_SIZES = "(max-width: 1264px) 100vw, 1136px";
                   sizes={STAGE_SIZES}
                   loading="lazy"
                   decoding="async"
+                  draggable={false}
                 />
-                <span class="shot-zoom" aria-hidden="true">
+                <button
+                  type="button"
+                  class="shot-zoom"
+                  aria-label={`Enlarge screenshot ${i + 1} of ${shots.length}: ${s.caption}`}
+                >
                   <Icon name="expand" size={18} />
-                </span>
-              </button>
+                </button>
+              </div>
             </li>
           ))
         }
@@ -125,7 +129,9 @@ const STAGE_SIZES = "(max-width: 1264px) 100vw, 1136px";
 <dialog id="shots-viewer" class="viewer" aria-label="Screenshot viewer">
   <div class="viewer-inner">
     <figure class="viewer-figure">
-      <img id="viewer-img" class="viewer-img" alt="" sizes="100vw" />
+      <div class="viewer-stage" id="viewer-stage">
+        <img id="viewer-img" class="viewer-img" alt="" sizes="100vw" draggable="false" />
+      </div>
       <figcaption class="viewer-bar">
         <span class="viewer-caption" id="viewer-caption"></span>
         <span class="viewer-counter" id="viewer-counter"></span>
@@ -159,10 +165,6 @@ const STAGE_SIZES = "(max-width: 1264px) 100vw, 1136px";
   .shots-head h2 {
     font-size: clamp(1.7rem, 1.2rem + 1.6vw, 2.4rem);
   }
-  .shots-sub {
-    color: var(--st-ink-muted);
-    margin-top: 0.4rem;
-  }
 
   /* Stage ------------------------------------------------------------- */
   .shots-stage {
@@ -192,14 +194,8 @@ const STAGE_SIZES = "(max-width: 1264px) 100vw, 1136px";
     scroll-snap-align: center;
     scroll-snap-stop: always;
   }
-  .shot-btn {
-    display: block;
+  .shot-frame {
     position: relative;
-    width: 100%;
-    padding: 0;
-    border: none;
-    background: none;
-    cursor: zoom-in;
     line-height: 0;
   }
   .shot-img {
@@ -207,8 +203,9 @@ const STAGE_SIZES = "(max-width: 1264px) 100vw, 1136px";
     height: auto;
     aspect-ratio: 16 / 9;
     object-fit: cover;
+    -webkit-user-drag: none;
   }
-  /* Enlarge hint — always legible on touch, brightens on hover/focus. */
+  /* Enlarge button — always legible on touch, brightens on hover/focus. */
   .shot-zoom {
     position: absolute;
     top: 0.8rem;
@@ -216,19 +213,31 @@ const STAGE_SIZES = "(max-width: 1264px) 100vw, 1136px";
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 38px;
-    height: 38px;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border: 1px solid rgba(244, 239, 225, 0.18);
     border-radius: 50%;
-    background: rgba(8, 10, 6, 0.55);
+    background: rgba(8, 10, 6, 0.62);
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
     color: var(--st-ink);
-    opacity: 0.75;
+    cursor: zoom-in;
+    opacity: 0.85;
     transition: opacity 0.15s ease, background-color 0.15s ease, transform 0.15s ease;
   }
-  .shot-btn:hover .shot-zoom,
-  .shot-btn:focus-visible .shot-zoom {
+  .shot-zoom:hover,
+  .shot-zoom:focus-visible {
     opacity: 1;
-    background: rgba(8, 10, 6, 0.8);
+    background: rgba(8, 10, 6, 0.85);
     transform: scale(1.08);
+  }
+  /* Only a pointer that can hover gets tap-anywhere-to-enlarge; on touch that
+     target overlaps the swipe surface. */
+  @media (hover: hover) and (pointer: fine) {
+    .shot-frame {
+      cursor: zoom-in;
+    }
   }
 
   .stage-arrow {
@@ -273,6 +282,8 @@ const STAGE_SIZES = "(max-width: 1264px) 100vw, 1136px";
     font-variant-numeric: tabular-nums;
   }
 
+  /* Tall enough for the longest caption at this width, so swapping shots
+     never shoves the filmstrip up and down. */
   .shots-caption {
     margin-top: 0.9rem;
     text-align: center;
@@ -378,14 +389,34 @@ const STAGE_SIZES = "(max-width: 1264px) 100vw, 1136px";
     gap: 0.7rem;
     max-width: min(100%, calc((100dvh - 9rem) * 16 / 9));
   }
+  /* The script owns every gesture in here — pinch, pan, double-tap and swipe —
+     so the browser must not also pan the page or run its own double-tap zoom.
+     Without `touch-action: none` a pinch scrolls the page out from under the
+     fingers and the pan turns into a swipe to the next shot. */
+  .viewer-stage {
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--st-radius);
+    background: #000;
+    box-shadow: var(--st-shadow-lg);
+    touch-action: none;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+    cursor: zoom-in;
+  }
+  .viewer-stage.is-zoomed {
+    cursor: grab;
+  }
   .viewer-img {
+    display: block;
     width: 100%;
     height: auto;
     max-height: calc(100dvh - 9rem);
     object-fit: contain;
-    border-radius: var(--st-radius);
-    background: #000;
-    box-shadow: var(--st-shadow-lg);
+    transform-origin: 50% 50%;
+    will-change: transform;
+    -webkit-user-drag: none;
   }
   .viewer-bar {
     display: flex;
@@ -459,6 +490,11 @@ const STAGE_SIZES = "(max-width: 1264px) 100vw, 1136px";
     .stage-arrow.next {
       right: 0.5rem;
     }
+    /* Captions wrap to two lines down here; reserve both so the strip below
+       does not jump every time the shot changes. */
+    .shots-caption {
+      min-height: 3.2em;
+    }
     .viewer-arrow {
       width: 44px;
       height: 44px;
@@ -467,6 +503,11 @@ const STAGE_SIZES = "(max-width: 1264px) 100vw, 1136px";
       flex-direction: column;
       align-items: flex-start;
       gap: 0.25rem;
+    }
+    /* The bar sits under a vertically centred figure, so a caption that wraps
+       to a second line would nudge the shot itself up and down between presses. */
+    .viewer-caption {
+      min-height: 3.2em;
     }
     .viewer-figure {
       max-width: min(100%, calc((100dvh - 11rem) * 16 / 9));
@@ -481,10 +522,12 @@ const STAGE_SIZES = "(max-width: 1264px) 100vw, 1136px";
   const track = document.getElementById("shots-track");
   const viewer = document.getElementById("shots-viewer") as HTMLDialogElement | null;
   const viewerImg = document.getElementById("viewer-img") as HTMLImageElement | null;
+  const viewerStage = document.getElementById("viewer-stage");
 
-  if (track && viewer && viewerImg) {
+  if (track && viewer && viewerImg && viewerStage) {
     const slides = Array.from(track.querySelectorAll<HTMLElement>(".shot"));
-    const stageBtns = Array.from(track.querySelectorAll<HTMLButtonElement>(".shot-btn"));
+    const frames = Array.from(track.querySelectorAll<HTMLElement>(".shot-frame"));
+    const zoomBtns = Array.from(track.querySelectorAll<HTMLButtonElement>(".shot-zoom"));
     const stageImgs = Array.from(track.querySelectorAll<HTMLImageElement>(".shot-img"));
     const thumbsEl = document.getElementById("shots-thumbs")!;
     const thumbs = Array.from(thumbsEl.querySelectorAll<HTMLButtonElement>(".thumb"));
@@ -494,11 +537,13 @@ const STAGE_SIZES = "(max-width: 1264px) 100vw, 1136px";
     const viewerCounter = document.getElementById("viewer-counter")!;
     const total = slides.length;
 
-    const captions = stageBtns.map((b) => b.dataset.caption ?? "");
+    const captions = frames.map((f) => f.dataset.caption ?? "");
 
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const finePointer = window.matchMedia("(hover: hover) and (pointer: fine)");
     const behavior = (): ScrollBehavior => (reduced.matches ? "auto" : "smooth");
     const wrap = (i: number) => (i + total) % total;
+    const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
 
     let index = 0;
 
@@ -532,6 +577,24 @@ const STAGE_SIZES = "(max-width: 1264px) 100vw, 1136px";
       container.scrollTo({ left, behavior: how });
     };
 
+    // A programmatic scroll fires dozens of scroll events, and mandatory snap
+    // makes the nearest-slide reading wobble as the animation lands. Feeding
+    // that back into the caption is what made the text flicker on every press,
+    // so scroll is ignored until the animation has settled. A finger on the
+    // track always wins — it releases the hold immediately.
+    let settleTimer = 0;
+    const releaseStage = () => {
+      clearTimeout(settleTimer);
+      settleTimer = 0;
+    };
+    const holdStage = (how: ScrollBehavior) => {
+      clearTimeout(settleTimer);
+      settleTimer = window.setTimeout(releaseStage, how === "auto" ? 150 : 700);
+    };
+    track.addEventListener("scrollend", releaseStage);
+    track.addEventListener("pointerdown", releaseStage, { passive: true });
+    track.addEventListener("touchstart", releaseStage, { passive: true });
+
     const setIndex = (i: number) => {
       index = i;
       captionEl.textContent = captions[i];
@@ -543,9 +606,16 @@ const STAGE_SIZES = "(max-width: 1264px) 100vw, 1136px";
       if (viewer.open) syncViewer();
     };
 
+    // While the viewer is open the stage stays put: scrolling it underneath
+    // fed its own scroll events back into setIndex, which re-ran syncViewer
+    // mid-animation and made the full-screen shot flash between neighbours.
+    // The stage catches up in one instant jump when the viewer closes.
     const goTo = (i: number, how: ScrollBehavior = behavior()) => {
-      centerIn(track, slides[i], how);
       setIndex(i);
+      if (!viewer.open) {
+        holdStage(how);
+        centerIn(track, slides[i], how);
+      }
     };
 
     // Wrapping around would otherwise smooth-scroll the whole strip — jump instead.
@@ -560,6 +630,7 @@ const STAGE_SIZES = "(max-width: 1264px) 100vw, 1136px";
     track.addEventListener(
       "scroll",
       () => {
+        if (settleTimer || viewer.open) return;
         const i = indexFromScroll();
         if (i !== index) setIndex(i);
       },
@@ -572,13 +643,52 @@ const STAGE_SIZES = "(max-width: 1264px) 100vw, 1136px";
 
     // ---- Full-screen viewer -------------------------------------------------
     /** Same derivatives as the stage, but `sizes="100vw"` lets the browser pick a bigger one. */
+    const asViewerCandidate = (from: HTMLImageElement) => {
+      const img = new Image();
+      img.sizes = "100vw";
+      img.srcset = from.srcset;
+      img.src = from.src;
+      return img;
+    };
+
+    let syncToken = 0;
     const syncViewer = () => {
-      const src = stageImgs[index];
-      viewerImg.srcset = src.srcset;
-      viewerImg.src = src.src;
-      viewerImg.alt = src.alt;
-      viewerCaption.textContent = captions[index];
-      viewerCounter.textContent = `${index + 1} / ${total}`;
+      // Pin the shot this call is for: `index` moves on, and a swap that lands
+      // late must know whether it is still the one being asked for.
+      const shot = index;
+      const from = stageImgs[shot];
+      viewerCaption.textContent = captions[shot];
+      viewerCounter.textContent = `${shot + 1} / ${total}`;
+      resetZoom(false);
+
+      // Bumped even when the shot is already up, so pressing next then back
+      // before the first swap lands cannot leave the wrong image on screen.
+      const token = ++syncToken;
+      if (viewerImg.dataset.shot === String(shot)) return;
+
+      const apply = () => {
+        if (token !== syncToken) return; // a later press already won the race
+        viewerImg.dataset.shot = String(shot);
+        viewerImg.srcset = from.srcset;
+        viewerImg.src = from.src;
+        viewerImg.alt = from.alt;
+        prefetch(shot - 1);
+        prefetch(shot + 1);
+      };
+
+      // The full-screen candidate is a wider derivative than the stage
+      // downloaded, so swapping straight away leaves the viewer blank until it
+      // arrives. Decode first and the shot changes in one frame. Opening is the
+      // exception: there is nothing worth holding on screen, and waiting would
+      // only stall the dialog.
+      const next = asViewerCandidate(from);
+      if (!viewer.open || next.complete) apply();
+      else next.decode().then(apply, apply);
+    };
+
+    /** Warm the neighbours so arrow presses land instantly. */
+    const prefetch = (i: number) => {
+      asViewerCandidate(stageImgs[wrap(i)]);
     };
 
     const openViewer = (i: number) => {
@@ -593,10 +703,22 @@ const STAGE_SIZES = "(max-width: 1264px) 100vw, 1136px";
       if (viewer.open) viewer.close();
     };
 
-    stageBtns.forEach((btn, i) =>
+    frames.forEach((frame, i) =>
+      frame.addEventListener("click", (e) => {
+        // Touch gets the explicit button instead: on a phone this frame is
+        // also the swipe surface, so tap-to-enlarge fires on every near-miss.
+        // Judge the pointer that actually fired rather than the device, so a
+        // touchscreen laptop still enlarges when the mouse is the one clicking.
+        // `click` is only a PointerEvent from Safari 13 on — older engines fall
+        // back to asking whether this device has a pointer that can hover.
+        const viaTouch =
+          e instanceof PointerEvent ? e.pointerType === "touch" : !finePointer.matches;
+        if (!viaTouch) openViewer(i);
+      }),
+    );
+    zoomBtns.forEach((btn, i) =>
       btn.addEventListener("click", (e) => {
-        if (typeof viewer.showModal !== "function") return; // no <dialog>: leave the button inert
-        e.preventDefault();
+        e.stopPropagation();
         openViewer(i);
       }),
     );
@@ -613,7 +735,10 @@ const STAGE_SIZES = "(max-width: 1264px) 100vw, 1136px";
 
     viewer.addEventListener("close", () => {
       document.body.style.overflow = "";
-      stageBtns[index]?.focus({ preventScroll: true });
+      resetZoom(false);
+      holdStage("auto");
+      centerIn(track, slides[index], "auto");
+      zoomBtns[index]?.focus({ preventScroll: true });
     });
 
     document.addEventListener("keydown", (e) => {
@@ -629,25 +754,188 @@ const STAGE_SIZES = "(max-width: 1264px) 100vw, 1136px";
       e.preventDefault();
     });
 
-    // Swipe between shots inside the viewer (the stage already scroll-snaps).
-    let touchX: number | null = null;
-    viewer.addEventListener(
-      "touchstart",
-      (e) => {
-        touchX = e.changedTouches[0]?.clientX ?? null;
-      },
-      { passive: true },
-    );
-    viewer.addEventListener(
-      "touchend",
-      (e) => {
-        const end = e.changedTouches[0]?.clientX;
-        if (touchX === null || end === undefined) return;
-        const dx = end - touchX;
-        touchX = null;
-        if (Math.abs(dx) > 45) step(dx < 0 ? 1 : -1);
-      },
-      { passive: true },
-    );
+    // ---- Pinch-zoom, pan and swipe -----------------------------------------
+    // One rule decides everything: at 1× a drag is a swipe between shots, and
+    // any closer than that a drag pans the shot you are looking at. Zooming in
+    // and then losing the frame to a swipe was the whole complaint.
+    const MAX_SCALE = 4;
+    const DOUBLE_TAP_SCALE = 2.5;
+    const SWIPE_PX = 45;
+    const TAP_SLOP_PX = 8;
+
+    let scale = 1;
+    let tx = 0;
+    let ty = 0;
+    let dragX = 0; // rubber-band give while swiping at 1×
+
+    const draw = (animate: boolean) => {
+      viewerImg.style.transition = animate && !reduced.matches ? "transform 0.2s ease-out" : "none";
+      viewerImg.style.transform = `translate(${tx + dragX}px, ${ty}px) scale(${scale})`;
+      viewerStage.classList.toggle("is-zoomed", scale > 1.01);
+    };
+
+    function resetZoom(animate: boolean) {
+      scale = 1;
+      tx = 0;
+      ty = 0;
+      dragX = 0;
+      draw(animate);
+    }
+
+    /** Never let the panned image pull away from the frame it fills. */
+    const clampPan = () => {
+      const maxX = Math.max(0, (viewerImg.offsetWidth * scale - viewerStage.clientWidth) / 2);
+      const maxY = Math.max(0, (viewerImg.offsetHeight * scale - viewerStage.clientHeight) / 2);
+      tx = clamp(tx, -maxX, maxX);
+      ty = clamp(ty, -maxY, maxY);
+    };
+
+    const stageCentre = () => {
+      const r = viewerStage.getBoundingClientRect();
+      return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+    };
+
+    /** Scale to `s` keeping whatever pixel sits under (x, y) exactly there. */
+    const zoomAbout = (s: number, x: number, y: number, animate: boolean) => {
+      const next = clamp(s, 1, MAX_SCALE);
+      const c = stageCentre();
+      const k = next / scale;
+      tx = x - c.x - k * (x - c.x - tx);
+      ty = y - c.y - k * (y - c.y - ty);
+      scale = next;
+      if (scale <= 1.01) resetZoom(animate);
+      else {
+        clampPan();
+        draw(animate);
+      }
+    };
+
+    const points = new Map<number, { x: number; y: number }>();
+    let pinch: { dist: number; scale: number; x: number; y: number; tx: number; ty: number; cx: number; cy: number } | null =
+      null;
+    let drag: { x: number; y: number; tx: number; ty: number; moved: boolean; touch: boolean } | null = null;
+    let lastTap = 0;
+
+    /** Midpoint and separation of the two active pointers. */
+    const spread = () => {
+      const [a, b] = Array.from(points.values());
+      return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2, d: Math.max(1, Math.hypot(a.x - b.x, a.y - b.y)) };
+    };
+
+    const beginPinch = () => {
+      const s = spread();
+      const c = stageCentre();
+      pinch = { dist: s.d, scale, x: s.x, y: s.y, tx, ty, cx: c.x, cy: c.y };
+      drag = null;
+      lastTap = 0;
+    };
+
+    viewerStage.addEventListener("pointerdown", (e) => {
+      if (e.pointerType === "mouse" && e.button !== 0) return;
+      viewerStage.setPointerCapture(e.pointerId);
+      points.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (points.size === 2) beginPinch();
+      else if (points.size === 1) {
+        drag = { x: e.clientX, y: e.clientY, tx, ty, moved: false, touch: e.pointerType !== "mouse" };
+      }
+    });
+
+    viewerStage.addEventListener("pointermove", (e) => {
+      const p = points.get(e.pointerId);
+      if (!p) return;
+      p.x = e.clientX;
+      p.y = e.clientY;
+
+      if (pinch && points.size >= 2) {
+        const s = spread();
+        const next = clamp((s.d / pinch.dist) * pinch.scale, 1, MAX_SCALE);
+        const k = next / pinch.scale;
+        // Anchor the pixel under the first midpoint, then follow the fingers.
+        tx = s.x - pinch.cx - k * (pinch.x - pinch.cx - pinch.tx);
+        ty = s.y - pinch.cy - k * (pinch.y - pinch.cy - pinch.ty);
+        scale = next;
+        clampPan();
+        draw(false);
+        return;
+      }
+
+      if (!drag) return;
+      const dx = e.clientX - drag.x;
+      const dy = e.clientY - drag.y;
+      if (!drag.moved && Math.hypot(dx, dy) > TAP_SLOP_PX) {
+        drag.moved = true;
+        lastTap = 0; // a drag in between must not pair up two stray taps
+      }
+      if (!drag.moved) return;
+
+      if (scale > 1.01) {
+        tx = drag.tx + dx;
+        ty = drag.ty + dy;
+        clampPan();
+        draw(false);
+      } else if (drag.touch) {
+        dragX = dx * 0.35;
+        draw(false);
+      }
+    });
+
+    const endPointer = (e: PointerEvent) => {
+      if (!points.has(e.pointerId)) return;
+      points.delete(e.pointerId);
+      if (viewerStage.hasPointerCapture(e.pointerId)) viewerStage.releasePointerCapture(e.pointerId);
+
+      if (pinch && points.size < 2) {
+        pinch = null;
+        if (scale <= 1.01) resetZoom(true);
+        else {
+          clampPan();
+          draw(true);
+        }
+        // Hand the surviving finger a fresh origin so the shot does not jump.
+        const rest = Array.from(points.values())[0];
+        if (rest) drag = { x: rest.x, y: rest.y, tx, ty, moved: true, touch: true };
+        return;
+      }
+
+      if (points.size > 0 || !drag) return;
+      const started = drag;
+      drag = null;
+
+      // Taps are read before the pan release, so a double tap still zooms back
+      // out while the shot is enlarged — which is the only time you want it.
+      if (!started.moved) {
+        dragX = 0;
+        if (e.timeStamp - lastTap < 320) {
+          lastTap = 0;
+          zoomAbout(scale > 1.01 ? 1 : DOUBLE_TAP_SCALE, e.clientX, e.clientY, true);
+        } else {
+          lastTap = e.timeStamp;
+          draw(false);
+        }
+        return;
+      }
+
+      if (scale > 1.01) {
+        clampPan();
+        draw(true);
+        return;
+      }
+
+      dragX = 0;
+      const dx = e.clientX - started.x;
+      const dy = e.clientY - started.y;
+      if (started.touch && Math.abs(dx) > SWIPE_PX && Math.abs(dx) > Math.abs(dy)) step(dx < 0 ? 1 : -1);
+      else draw(true);
+    };
+
+    viewerStage.addEventListener("pointerup", endPointer);
+    viewerStage.addEventListener("pointercancel", endPointer);
+    // A zoomed shot that survived a rotate or a keyboard would sit off-centre.
+    window.addEventListener("resize", () => {
+      if (viewer.open && scale > 1.01) {
+        clampPan();
+        draw(false);
+      }
+    });
   }
 </script>

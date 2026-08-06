@@ -10,6 +10,7 @@ src/data/farms.json
 src/data/terrains.json
 public/terrain-thumbs/
 public/terrains/
+public/press/
 public/history/east.html
 
 # old website — reference only, will be deleted (see WEBSITE_PROPOSAL.md §14C)

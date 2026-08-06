@@ -77,4 +77,4 @@ This repository contains two kinds of content with **different licenses**:
 
 ---
 
-<p align="center"><sub>© 2017–2026 Luna Wolf Studios LLC. All rights reserved.</sub></p>
+<p align="center"><sub>© 2015–2026 Luna Wolf Studios LLC. All rights reserved.</sub></p>

@@ -6,6 +6,7 @@
  */
 import { readFile, writeFile, readdir, stat, mkdir, copyFile, rm } from "node:fs/promises";
 import path from "node:path";
+import { crc32 } from "node:zlib";
 import {
   EXTENSION,
   St2Error,
@@ -198,6 +199,127 @@ async function buildTerrains() {
   );
 }
 
+/**
+ * Press-kit downloads (/presskit): original-resolution assets copied into public/press/
+ * for direct links, plus ready-made .zip bundles. Press-friendly kebab-case names —
+ * the repo filenames (spaces, mixed conventions) would make ugly URLs.
+ */
+const PRESS_FILES: Record<string, Record<string, string>> = {
+  "key-art": {
+    "st2-key-art-2560x1440.png": "logos/st2_background_2560x1440.png",
+    "st2-key-art-logo-2560x1440.png": "logos/Background_2560x1440.png",
+    "st2-key-art-logo-1024x1024.png": "logos/Background_1024x1024.png",
+    "st2-key-art-social-1200x630.png": "logos/st2_background_1200x630.png",
+    "st2-key-art-vertical-600x900.png": "logos/Steam Library Capsule.png",
+  },
+  logo: {
+    "st2-logo-transparent-1280x720.png": "logos/st2_logo_transparent_1280x720.png",
+    "st2-icon-96x96.png": "icons/SheepTag2_Icon_96x96.png",
+    "st2-icon-64x64.png": "icons/SheepTag2_Icon_64x64.png",
+    "st2-icon-32x32.png": "icons/SheepTag2_Icon_32x32.png",
+  },
+};
+
+/**
+ * Minimal STORED zip writer. The bundles are all PNGs — already compressed, so
+ * deflating again buys nothing — and entries this size need no zip64, which keeps
+ * the format trivial and the build free of a zip dependency.
+ */
+function zipStored(entries: Array<{ name: string; data: Buffer; mtime: Date }>): Buffer {
+  const chunks: Buffer[] = [];
+  const central: Buffer[] = [];
+  let offset = 0;
+  for (const { name, data, mtime } of entries) {
+    const nameBytes = Buffer.from(name, "utf8");
+    const crc = crc32(data) >>> 0;
+    const dosTime =
+      (mtime.getHours() << 11) | (mtime.getMinutes() << 5) | (mtime.getSeconds() >> 1);
+    const dosDate =
+      ((mtime.getFullYear() - 1980) << 9) | ((mtime.getMonth() + 1) << 5) | mtime.getDate();
+
+    const local = Buffer.alloc(30);
+    local.writeUInt32LE(0x04034b50, 0); // local file header
+    local.writeUInt16LE(20, 4); // version needed
+    local.writeUInt16LE(0, 8); // method: stored
+    local.writeUInt16LE(dosTime, 10);
+    local.writeUInt16LE(dosDate, 12);
+    local.writeUInt32LE(crc, 14);
+    local.writeUInt32LE(data.length, 18); // compressed = uncompressed when stored
+    local.writeUInt32LE(data.length, 22);
+    local.writeUInt16LE(nameBytes.length, 26);
+    chunks.push(local, nameBytes, data);
+
+    const dir = Buffer.alloc(46);
+    dir.writeUInt32LE(0x02014b50, 0); // central directory header
+    dir.writeUInt16LE(20, 4); // version made by
+    dir.writeUInt16LE(20, 6); // version needed
+    dir.writeUInt16LE(dosTime, 12);
+    dir.writeUInt16LE(dosDate, 14);
+    dir.writeUInt32LE(crc, 16);
+    dir.writeUInt32LE(data.length, 20);
+    dir.writeUInt32LE(data.length, 24);
+    dir.writeUInt16LE(nameBytes.length, 28);
+    dir.writeUInt32LE(offset, 42); // local header offset
+    central.push(dir, nameBytes);
+    offset += 30 + nameBytes.length + data.length;
+  }
+  const dirSize = central.reduce((n, b) => n + b.length, 0);
+  const end = Buffer.alloc(22);
+  end.writeUInt32LE(0x06054b50, 0); // end of central directory
+  end.writeUInt16LE(entries.length, 8);
+  end.writeUInt16LE(entries.length, 10);
+  end.writeUInt32LE(dirSize, 12);
+  end.writeUInt32LE(offset, 16);
+  chunks.push(...central, end);
+  return Buffer.concat(chunks);
+}
+
+async function buildPress() {
+  const PRESS_DIR = path.join(PUBLIC_DIR, "press");
+  await rm(PRESS_DIR, { recursive: true, force: true });
+
+  // Screenshots go in at their native resolution and repo names (already kebab-case);
+  // a new shot dropped into screenshots/ is picked up on the next build.
+  const shots = (await readdir(path.join(ROOT, "screenshots")))
+    .filter((f) => f.toLowerCase().endsWith(".png"))
+    .sort((a, b) => a.localeCompare(b));
+  const groups: Record<string, Record<string, string>> = {
+    screenshots: Object.fromEntries(shots.map((f) => [f, `screenshots/${f}`])),
+    ...PRESS_FILES,
+  };
+
+  const bundle: Array<{ rel: string; data: Buffer; mtime: Date }> = [];
+  for (const [group, files] of Object.entries(groups)) {
+    const dir = path.join(PRESS_DIR, group);
+    await mkdir(dir, { recursive: true });
+    for (const [out, src] of Object.entries(files)) {
+      const full = path.join(ROOT, src);
+      await copyFile(full, path.join(dir, out));
+      bundle.push({ rel: `${group}/${out}`, data: await readFile(full), mtime: (await stat(full)).mtime });
+    }
+  }
+
+  // Two bundles, presskit()-style: everything, and just the logo & icon.
+  const zips: Array<[file: string, entries: Array<{ name: string; data: Buffer; mtime: Date }>]> = [
+    [
+      "sheep-tag-2-press.zip",
+      bundle.map((e) => ({ name: `sheep-tag-2-press/${e.rel}`, data: e.data, mtime: e.mtime })),
+    ],
+    [
+      "sheep-tag-2-logo-icon.zip",
+      bundle
+        .filter((e) => e.rel.startsWith("logo/"))
+        .map((e) => ({ name: `sheep-tag-2-logo-icon/${path.posix.basename(e.rel)}`, data: e.data, mtime: e.mtime })),
+    ],
+  ];
+  for (const [file, entries] of zips) {
+    const zip = zipStored(entries);
+    await writeFile(path.join(PRESS_DIR, file), zip);
+    console.log(`[build] press ${file} — ${entries.length} files, ${humanBytes(zip.length)}`);
+  }
+  console.log(`[build] press assets — ${bundle.length} files copied to public/press/`);
+}
+
 /** Serve the standalone easter-egg page from public/ (its deps live in public/history + public/assets). */
 async function copyEasterEgg() {
   const dest = path.join(PUBLIC_DIR, "history");
@@ -208,5 +330,6 @@ async function copyEasterEgg() {
 
 await buildFarms();
 await buildTerrains();
+await buildPress();
 await copyEasterEgg();
 console.log("[build] done.");

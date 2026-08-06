@@ -1,0 +1,749 @@
+---
+/**
+ * Press kit (/presskit) — follows the presskit() format by Rami Ismail
+ * (dopresskit.com): factsheet, description, history, features, videos, images,
+ * logo & icon, coverage, monetization permission, links, about, credits and
+ * contact. Copy lives in src/data/presskit.ts; downloadable originals + zips
+ * are generated into public/press/ by scripts/build.mts.
+ */
+import { statSync } from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import { Image } from "astro:assets";
+import type { ImageMetadata } from "astro";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import Icon from "../components/Icon.astro";
+import icon96 from "../../icons/SheepTag2_Icon_96x96.png";
+import { SITE } from "../data/site";
+import { LINKS } from "../data/links";
+import { SCREENSHOTS } from "../data/screenshots";
+import {
+  ABOUT,
+  ADDITIONAL_LINKS,
+  COVERAGE,
+  CREDITS,
+  DESCRIPTION,
+  FACTSHEET,
+  FEATURES,
+  HISTORY,
+  LWS_PRESSKIT,
+  MONETIZATION,
+  PITCH,
+  PRESS_EMAIL,
+  SOCIALS,
+  TIMELINE,
+  VIDEOS,
+} from "../data/presskit";
+
+// Screenshots — same source as the home gallery; thumbnails are optimized,
+// each links to the untouched 2560×1440 original copied into /press/.
+const shotModules = import.meta.glob<ImageMetadata>("../../screenshots/*.png", {
+  eager: true,
+  import: "default",
+});
+const shots = SCREENSHOTS.map((s) => {
+  const img = Object.entries(shotModules).find(([p]) => p.endsWith(`/${s.file}`))?.[1];
+  if (!img) throw new Error(`Press kit: screenshot "${s.file}" missing from screenshots/`);
+  return { ...s, img, original: `/press/screenshots/${s.file}` };
+});
+
+// Key art + logo — only the pieces the page shows, so no unused originals get
+// bundled into the build.
+const artModules = import.meta.glob<ImageMetadata>(
+  [
+    "../../logos/st2_background_2560x1440.png",
+    "../../logos/Background_2560x1440.png",
+    "../../logos/Background_1024x1024.png",
+    "../../logos/st2_background_1200x630.png",
+    "../../logos/Steam Library Capsule.png",
+    "../../logos/st2_logo_transparent_1280x720.png",
+  ],
+  { eager: true, import: "default" },
+);
+const artByFile = (file: string): ImageMetadata => {
+  const img = Object.entries(artModules).find(([p]) => p.endsWith(`/${file}`))?.[1];
+  if (!img) throw new Error(`Press kit: key art "${file}" missing from logos/`);
+  return img;
+};
+const keyArt = [
+  {
+    img: artByFile("st2_background_2560x1440.png"),
+    label: "Key art - 2560×1440",
+    alt: "Sheep Tag 2 key art: a Sheep flees a pack of Wolves across a bright green pasture.",
+    original: "/press/key-art/st2-key-art-2560x1440.png",
+  },
+  {
+    img: artByFile("Background_2560x1440.png"),
+    label: "Key art (with logo) - 2560×1440",
+    alt: "Sheep Tag 2 key art with the game logo across the pasture.",
+    original: "/press/key-art/st2-key-art-logo-2560x1440.png",
+  },
+  {
+    img: artByFile("Background_1024x1024.png"),
+    label: "Key art (with logo) - 1024×1024",
+    alt: "Square Sheep Tag 2 key art with the game logo.",
+    original: "/press/key-art/st2-key-art-logo-1024x1024.png",
+  },
+  {
+    img: artByFile("st2_background_1200x630.png"),
+    label: "Key art (social) - 1200×630",
+    alt: "Sheep Tag 2 key art cropped for social cards.",
+    original: "/press/key-art/st2-key-art-social-1200x630.png",
+  },
+  {
+    img: artByFile("Steam Library Capsule.png"),
+    label: "Key art (vertical) - 600×900",
+    alt: "Sheep Tag 2 vertical key art with the game logo.",
+    original: "/press/key-art/st2-key-art-vertical-600x900.png",
+  },
+];
+const logoImg = artByFile("st2_logo_transparent_1280x720.png");
+
+// Zip bundles are written by the prebuild step, so their real size is known here.
+const pressDir = fileURLToPath(new URL("../../public/press/", import.meta.url));
+const zipSize = (file: string): string => {
+  try {
+    const mb = statSync(path.join(pressDir, file)).size / 1048576;
+    return `${mb >= 10 ? Math.round(mb) : mb.toFixed(1)} MB`;
+  } catch {
+    return "";
+  }
+};
+const pressZip = { href: "/press/sheep-tag-2-press.zip", size: zipSize("sheep-tag-2-press.zip") };
+const logoZip = { href: "/press/sheep-tag-2-logo-icon.zip", size: zipSize("sheep-tag-2-logo-icon.zip") };
+const withSize = (label: string, size: string) => (size ? `${label} (${size})` : label);
+
+const title = "Press Kit — Sheep Tag 2";
+const description =
+  "Official Sheep Tag 2 press kit: factsheet, history, features, trailer, screenshots, key art, logos, team credits, and press contact for Luna Wolf Studios' free-to-play Sheep vs. Wolves strategy game on Steam.";
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "VideoGame",
+  name: SITE.name,
+  description: SITE.fullDescription,
+  url: SITE.url,
+  image: new URL(SITE.ogImage, SITE.url).href,
+  genre: ["Strategy", "Survival", "Multiplayer"],
+  gamePlatform: "PC",
+  operatingSystem: "Windows, macOS, Linux",
+  playMode: "MultiPlayer",
+  offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+  publisher: {
+    "@type": "Organization",
+    name: SITE.publisher,
+    email: PRESS_EMAIL,
+    address: { "@type": "PostalAddress", addressRegion: "DE", addressCountry: "US" },
+  },
+  author: { "@type": "Organization", name: SITE.publisher },
+  sameAs: [LINKS.steam, LINKS.discord, LINKS.kickstarter, LINKS.x, LINKS.youtube],
+};
+---
+
+<BaseLayout title={title} description={description}>
+  <script type="application/ld+json" slot="head" is:inline set:html={JSON.stringify(jsonLd)} />
+
+  <div class="wrap pk">
+    <header class="pk-head">
+      <h1>Press Kit</h1>
+      <p class="sub">
+        Everything you need to cover <strong>Sheep Tag 2</strong>: factsheet, history, features,
+        trailer, screenshots, key art, and logos. All materials on this page may be used for
+        editorial and promotional coverage of the game.
+      </p>
+      <div class="pk-actions">
+        <a class="btn btn--primary" href={pressZip.href} download>
+          <Icon name="download" size={18} />
+          {withSize("Download press kit (.zip)", pressZip.size)}
+        </a>
+        <a class="btn btn--secondary" href="#videos">
+          <Icon name="play" size={18} /> Watch the trailer
+        </a>
+        <a class="btn btn--secondary" href={`mailto:${PRESS_EMAIL}`}>Contact press</a>
+      </div>
+    </header>
+
+    <div class="pk-grid">
+      <aside class="factsheet card" id="factsheet" aria-label="Factsheet">
+        <h2>Factsheet</h2>
+        <dl>
+          {
+            FACTSHEET.map((f) => (
+              <>
+                <dt>{f.label}</dt>
+                <dd>
+                  {f.href ? (
+                    <a href={f.href} target={f.href.startsWith("http") ? "_blank" : undefined} rel="noopener">
+                      {f.value}
+                    </a>
+                  ) : (
+                    f.value
+                  )}
+                </dd>
+              </>
+            ))
+          }
+          <dt>Social</dt>
+          <dd class="fact-socials">
+            {
+              SOCIALS.map((s, i) => (
+                <>
+                  {i > 0 && <span aria-hidden="true"> · </span>}
+                  <a href={s.url} target="_blank" rel="noopener">
+                    {s.label}
+                  </a>
+                </>
+              ))
+            }
+          </dd>
+        </dl>
+      </aside>
+
+      <div class="pk-main">
+        <section id="description" aria-labelledby="description-title">
+          <h2 id="description-title">Description</h2>
+          <p class="pitch">{PITCH}</p>
+          {DESCRIPTION.map((p) => <p>{p}</p>)}
+        </section>
+
+        <section id="history" aria-labelledby="history-title">
+          <h2 id="history-title">History</h2>
+          {HISTORY.map((p) => <p>{p}</p>)}
+          <ol class="timeline" aria-label="Development timeline">
+            {
+              TIMELINE.map((t) => (
+                <li>
+                  <span class="badge badge--gold when">{t.when}</span>
+                  <span class="what">{t.what}</span>
+                </li>
+              ))
+            }
+          </ol>
+        </section>
+
+        <section id="features" aria-labelledby="features-title">
+          <h2 id="features-title">Features</h2>
+          <ul class="features-list">
+            {FEATURES.map((f) => <li>{f}</li>)}
+          </ul>
+        </section>
+
+        <section id="videos" aria-labelledby="videos-title">
+          <h2 id="videos-title">Videos</h2>
+          {
+            VIDEOS.map((v) => (
+              <figure class="video">
+                <div class="video-frame">
+                  <iframe
+                    src={`https://www.youtube-nocookie.com/embed/${v.id}`}
+                    title={v.title}
+                    loading="lazy"
+                    allow="encrypted-media; fullscreen; picture-in-picture"
+                    allowfullscreen
+                  />
+                </div>
+                <figcaption>
+                  {v.title} (<a href={`https://www.youtube.com/watch?v=${v.id}`} target="_blank" rel="noopener">watch on YouTube</a>)
+                </figcaption>
+              </figure>
+            ))
+          }
+        </section>
+
+        <section id="images" aria-labelledby="images-title">
+          <h2 id="images-title">Images</h2>
+          <p>
+            Screenshots are captured in-engine at 2560×1440. Click any image for the untouched
+            original, or grab everything at once.
+          </p>
+          <div class="dl-row">
+            <a class="btn btn--primary btn--sm" href={pressZip.href} download>
+              <Icon name="download" size={16} />
+              {withSize("All screenshots, key art & logo (.zip)", pressZip.size)}
+            </a>
+          </div>
+          <div class="shot-grid">
+            {
+              shots.map((s) => (
+                <a class="media-link" href={s.original} target="_blank" title="Open original 2560×1440 PNG">
+                  <Image
+                    src={s.img}
+                    alt={s.alt}
+                    widths={[480, 960]}
+                    sizes="(max-width: 700px) 100vw, (max-width: 1100px) 50vw, 420px"
+                    loading="lazy"
+                  />
+                </a>
+              ))
+            }
+          </div>
+          <h3 class="images-sub">Key art</h3>
+          <div class="art-grid">
+            {
+              keyArt.map((a) => (
+                <figure class="art-item">
+                  <a class="media-link" href={a.original} target="_blank" title="Open original PNG">
+                    <Image src={a.img} alt={a.alt} widths={[480, 960]} sizes="(max-width: 700px) 100vw, 420px" loading="lazy" />
+                  </a>
+                  <figcaption>{a.label}</figcaption>
+                </figure>
+              ))
+            }
+          </div>
+        </section>
+
+        <section id="logo" aria-labelledby="logo-title">
+          <h2 id="logo-title">Logo &amp; Icon</h2>
+          <div class="dl-row">
+            <a class="btn btn--primary btn--sm" href={logoZip.href} download>
+              <Icon name="download" size={16} />
+              {withSize("Logo & icon files (.zip)", logoZip.size)}
+            </a>
+          </div>
+          <div class="logo-row">
+            <a class="media-link logo-card" href="/press/logo/st2-logo-transparent-1280x720.png" target="_blank" title="Open original transparent PNG">
+              <Image src={logoImg} alt="Sheep Tag 2 logo (transparent PNG)" widths={[480, 960]} sizes="(max-width: 700px) 100vw, 560px" loading="lazy" />
+            </a>
+            <a class="media-link icon-card" href="/press/logo/st2-icon-96x96.png" target="_blank" title="Open original 96×96 PNG">
+              <Image src={icon96} alt="Sheep Tag 2 icon" width={96} height={96} densities={[2]} loading="lazy" />
+              <span>Icon - 96×96</span>
+            </a>
+          </div>
+          <p class="logo-note">
+            Need Luna Wolf Studios logos too? They're in the <a href={LWS_PRESSKIT} target="_blank" rel="noopener">Luna Wolf Studios press kit</a>.
+          </p>
+        </section>
+
+        <section id="coverage" aria-labelledby="coverage-title">
+          <h2 id="coverage-title">Selected Coverage</h2>
+          <ul class="link-list">
+            {
+              COVERAGE.map((c) => (
+                <li>
+                  <strong>{c.outlet}</strong>: <a href={c.url} target="_blank" rel="noopener">{c.title}</a>
+                  <p class="link-note">{c.note}</p>
+                </li>
+              ))
+            }
+          </ul>
+        </section>
+
+        <section id="monetization" aria-labelledby="monetization-title">
+          <h2 id="monetization-title">Monetization Permission</h2>
+          <p>{MONETIZATION}</p>
+        </section>
+
+        <section id="links" aria-labelledby="links-title">
+          <h2 id="links-title">Additional Links</h2>
+          <ul class="link-list">
+            {
+              ADDITIONAL_LINKS.map((l) => (
+                <li>
+                  <a href={l.url} target="_blank" rel="noopener">
+                    <strong>{l.label}</strong>
+                  </a>
+                  <p class="link-note">{l.note}</p>
+                </li>
+              ))
+            }
+          </ul>
+        </section>
+
+        <section id="about" aria-labelledby="about-title">
+          <h2 id="about-title">About Luna Wolf Studios</h2>
+          {ABOUT.map((p) => <p>{p}</p>)}
+        </section>
+
+        <section id="credits" aria-labelledby="credits-title">
+          <h2 id="credits-title">Team</h2>
+          <div class="credits-grid">
+            {
+              CREDITS.map((c) => (
+                <article class="credit card">
+                  <h3>{c.name}</h3>
+                  <p class="role">{c.role}</p>
+                  <p class="note">{c.note}</p>
+                  {c.url && (
+                    <a href={c.url} target="_blank" rel="noopener" class="credit-link">
+                      {c.linkLabel ?? c.url.replace(/^https?:\/\/(www\.)?|\/$/g, "")}
+                      <Icon name="external" size={13} />
+                    </a>
+                  )}
+                </article>
+              ))
+            }
+          </div>
+          <p class="credits-note">
+            …and the Sheep Tag community, whose terrains, feedback, and twenty-plus years of play
+            shaped everything above.
+          </p>
+        </section>
+
+        <section id="contact" aria-labelledby="contact-title">
+          <h2 id="contact-title">Contact</h2>
+          <dl class="contact-list">
+            <dt>Press &amp; business inquiries</dt>
+            <dd><a href={`mailto:${PRESS_EMAIL}`}>{PRESS_EMAIL}</a></dd>
+            <dt>Beta access</dt>
+            <dd>
+              The closed beta is open on request, first come, first served, while spots last. <a href={`mailto:${PRESS_EMAIL}`}>Email us</a> or ask in <a href={LINKS.discord} target="_blank" rel="noopener">Discord</a>.
+            </dd>
+            <dt>Community</dt>
+            <dd><a href={LINKS.discord} target="_blank" rel="noopener">Discord</a></dd>
+            <dt>Web</dt>
+            <dd><a href={LINKS.homepage}>sheeptag2.com</a></dd>
+          </dl>
+        </section>
+
+        <p class="pk-footnote">
+          Assets on this page are provided for editorial and promotional coverage of Sheep Tag 2.
+          Please credit Luna Wolf Studios. &copy; 2015&ndash;{new Date().getFullYear()} Luna Wolf
+          Studios LLC. All rights reserved. Press kit format based on <a href="https://dopresskit.com/" target="_blank" rel="noopener">presskit()</a> by Rami Ismail.
+        </p>
+      </div>
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .pk {
+    padding-block: clamp(1.5rem, 4vw, 3rem) 4rem;
+  }
+  .pk-head h1 {
+    font-size: clamp(2rem, 1.4rem + 2.5vw, 3rem);
+  }
+  .pk-head .sub {
+    color: var(--st-ink-muted);
+    margin-top: 0.3rem;
+    max-width: 78ch;
+    text-wrap: pretty;
+  }
+  .pk-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 1.2rem;
+  }
+
+  .pk-grid {
+    display: grid;
+    grid-template-columns: 300px minmax(0, 1fr);
+    gap: clamp(1.5rem, 3.5vw, 3rem);
+    align-items: start;
+    margin-top: clamp(2rem, 4vw, 3rem);
+  }
+
+  /* Factsheet ---------------------------------------------------------- */
+  .factsheet {
+    position: sticky;
+    top: calc(var(--st-header-h) + 1rem);
+    padding: 1.25rem 1.25rem 1.4rem;
+  }
+  .factsheet h2 {
+    font-size: 1.1rem;
+    color: var(--st-gold);
+    margin-bottom: 0.9rem;
+  }
+  .factsheet dl {
+    margin: 0;
+  }
+  .factsheet dt {
+    font-family: var(--font-display);
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--st-ink-subtle);
+  }
+  .factsheet dd {
+    margin: 0.15rem 0 0.8rem;
+    font-size: 0.92rem;
+    line-height: 1.45;
+  }
+  .factsheet dd:last-child {
+    margin-bottom: 0;
+  }
+  .fact-socials {
+    line-height: 1.7;
+  }
+
+  /* Main column -------------------------------------------------------- */
+  .pk-main section + section {
+    margin-top: 2.6rem;
+    padding-top: 2.2rem;
+    border-top: 1px solid var(--st-border);
+  }
+  .pk-main h2 {
+    font-size: clamp(1.4rem, 1.1rem + 1.2vw, 1.9rem);
+    color: var(--st-green-bright);
+    margin-bottom: 0.9rem;
+  }
+  .pk-main p {
+    color: var(--st-ink-muted);
+    max-width: 75ch;
+    text-wrap: pretty;
+  }
+  .pk-main p + p {
+    margin-top: 0.85rem;
+  }
+  .pitch {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: 1.12rem;
+    color: var(--st-ink) !important;
+    margin-bottom: 0.85rem;
+  }
+
+  /* History timeline */
+  .timeline {
+    list-style: none;
+    margin: 1.5rem 0 0;
+    padding: 0;
+    display: grid;
+    gap: 0.55rem;
+  }
+  .timeline li {
+    display: grid;
+    grid-template-columns: 108px minmax(0, 1fr);
+    gap: 0.8rem;
+    align-items: baseline;
+  }
+  .timeline .when {
+    justify-content: center;
+    white-space: nowrap;
+  }
+  .timeline .what {
+    color: var(--st-ink-muted);
+  }
+
+  /* Features */
+  .features-list {
+    margin: 0;
+    padding-left: 1.15rem;
+    columns: 2;
+    column-gap: 2.5rem;
+    color: var(--st-ink-muted);
+  }
+  .features-list li {
+    margin-bottom: 0.55rem;
+    break-inside: avoid;
+    padding-left: 0.15rem;
+  }
+  .features-list li::marker {
+    color: var(--st-green);
+  }
+
+  /* Videos */
+  .video {
+    margin: 0;
+  }
+  .video-frame {
+    aspect-ratio: 16 / 9;
+    border-radius: var(--st-radius-lg);
+    overflow: hidden;
+    border: 1px solid var(--st-border);
+    background: #000;
+    box-shadow: var(--st-shadow-lg);
+  }
+  .video-frame iframe {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border: 0;
+  }
+  .video figcaption {
+    margin-top: 0.6rem;
+    font-size: 0.9rem;
+    color: var(--st-ink-subtle);
+  }
+
+  /* Images */
+  .dl-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin: 1rem 0 1.2rem;
+  }
+  .media-link {
+    display: block;
+    border-radius: var(--st-radius);
+    overflow: hidden;
+    border: 1px solid var(--st-border);
+    line-height: 0;
+    transition: transform 0.15s ease, border-color 0.15s ease;
+  }
+  .media-link:hover {
+    transform: translateY(-2px);
+    border-color: color-mix(in srgb, var(--st-green) 55%, var(--st-border));
+  }
+  .media-link :global(img) {
+    width: 100%;
+    height: auto;
+  }
+  .shot-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(255px, 1fr));
+    gap: 0.8rem;
+  }
+  .shot-grid :global(img) {
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+  }
+  .images-sub {
+    margin: 1.6rem 0 0.8rem;
+    font-size: 1.15rem;
+    color: var(--st-ink);
+  }
+  .art-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 0.8rem;
+    align-items: start;
+  }
+  .art-item {
+    margin: 0;
+  }
+  .art-item figcaption {
+    margin-top: 0.45rem;
+    font-size: 0.85rem;
+    color: var(--st-ink-subtle);
+  }
+
+  /* Logo & icon */
+  .logo-row {
+    display: grid;
+    grid-template-columns: minmax(0, 560px) auto;
+    gap: 0.8rem;
+    align-items: stretch;
+  }
+  .logo-card {
+    background:
+      radial-gradient(circle at 50% 45%, color-mix(in srgb, var(--st-green-deep) 26%, transparent), transparent 70%),
+      var(--st-bg-2);
+    padding: 1.25rem;
+  }
+  .icon-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.7rem;
+    padding: 1.25rem 1.5rem;
+    background: var(--st-bg-2);
+    line-height: 1.3;
+    font-size: 0.85rem;
+    color: var(--st-ink-subtle);
+    text-decoration: none;
+  }
+  .logo-note {
+    margin-top: 0.9rem;
+    font-size: 0.9rem;
+    color: var(--st-ink-subtle);
+  }
+
+  /* Coverage & links */
+  .link-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0.9rem;
+  }
+  .link-list strong {
+    font-family: var(--font-display);
+    font-weight: 600;
+    color: var(--st-ink);
+  }
+  .link-note {
+    margin: 0.1rem 0 0;
+    font-size: 0.9rem;
+    color: var(--st-ink-subtle);
+  }
+
+  /* Credits */
+  .credits-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(255px, 1fr));
+    gap: 0.9rem;
+  }
+  .credit {
+    padding: 1.05rem 1.15rem;
+  }
+  .credit h3 {
+    font-size: 1.08rem;
+  }
+  .credit .role {
+    margin-top: 0.15rem;
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: 0.88rem;
+    color: var(--st-green-bright);
+  }
+  .credit .note {
+    margin-top: 0.45rem;
+    font-size: 0.88rem;
+    color: var(--st-ink-muted);
+  }
+  .credit-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3em;
+    margin-top: 0.55rem;
+    font-size: 0.85rem;
+  }
+  .credits-note {
+    margin-top: 1.1rem;
+    font-size: 0.92rem;
+    color: var(--st-ink-subtle);
+  }
+
+  /* Contact */
+  .contact-list {
+    margin: 0;
+    display: grid;
+    grid-template-columns: max-content minmax(0, 1fr);
+    gap: 0.45rem 1.4rem;
+  }
+  .contact-list dt {
+    font-family: var(--font-display);
+    font-weight: 600;
+    color: var(--st-ink);
+  }
+  .contact-list dd {
+    margin: 0;
+  }
+
+  .pk-footnote {
+    margin-top: 3rem;
+    padding-top: 1.4rem;
+    border-top: 1px solid var(--st-border);
+    font-size: 0.84rem;
+    line-height: 1.6;
+    color: var(--st-ink-subtle);
+    max-width: 80ch;
+  }
+
+  @media (max-width: 900px) {
+    .pk-grid {
+      grid-template-columns: 1fr;
+    }
+    .factsheet {
+      position: static;
+    }
+  }
+  @media (max-width: 700px) {
+    .features-list {
+      columns: 1;
+    }
+    .logo-row {
+      grid-template-columns: 1fr;
+    }
+    .contact-list {
+      grid-template-columns: 1fr;
+      gap: 0.1rem;
+    }
+    .contact-list dd {
+      margin-bottom: 0.7rem;
+    }
+  }
+</style>

@@ -9,6 +9,7 @@ export const LINKS = {
   discord: "https://discord.gg/jNf5RsaZPp",
   homepage: "https://www.sheeptag2.com/",
   x: "https://x.com/sheeptag2",
+  bluesky: "https://bsky.app/profile/lunawolfstudios.bsky.social",
   facebook: "https://facebook.com/sheeptag2",
   instagram: "https://instagram.com/sheeptag2",
   youtube: "https://www.youtube.com/channel/UCzw57oNyk0mCeVSoi-UCUBQ",

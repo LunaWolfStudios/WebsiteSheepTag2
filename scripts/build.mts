@@ -214,6 +214,7 @@ const PRESS_FILES: Record<string, Record<string, string>> = {
   },
   logo: {
     "st2-logo-transparent-1280x720.png": "logos/st2_logo_transparent_1280x720.png",
+    "st2-icon-256x256.png": "icons/SheepTag2_Icon_256x256.png",
     "st2-icon-96x96.png": "icons/SheepTag2_Icon_96x96.png",
     "st2-icon-64x64.png": "icons/SheepTag2_Icon_64x64.png",
     "st2-icon-32x32.png": "icons/SheepTag2_Icon_32x32.png",

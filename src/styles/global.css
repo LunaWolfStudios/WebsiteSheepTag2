@@ -105,8 +105,12 @@ a:hover {
   --btn-ink: var(--st-cta-ink);
   box-shadow: 0 4px 0 var(--st-gold-deep);
 }
+/* `color` is restated here because the generic `a:hover` rule above would
+   otherwise repaint the label gold — unreadable against the green. */
 .btn--primary:hover {
-  --btn-bg: var(--st-green-bright);
+  --btn-bg: var(--st-green);
+  color: var(--btn-ink);
+  box-shadow: 0 4px 0 var(--st-green-deep);
 }
 .btn--secondary {
   --btn-bg: transparent;

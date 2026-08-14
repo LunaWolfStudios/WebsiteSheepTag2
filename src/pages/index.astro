@@ -1,7 +1,9 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
 import Hero from "../components/Hero.astro";
+import OverviewIntro from "../components/guides/OverviewIntro.astro";
 import Screenshots from "../components/Screenshots.astro";
+import TerrainsTeaser from "../components/TerrainsTeaser.astro";
 import { SITE } from "../data/site";
 import { LINKS } from "../data/links";
 
@@ -29,5 +31,21 @@ const jsonLd = {
     set:html={JSON.stringify(jsonLd)}
   />
   <Hero />
+
+  {/* The guides' own opening, so the key art hands straight over to how the game plays. */}
+  <section class="section overview-band" aria-labelledby="overview-title">
+    <div class="wrap">
+      <h2 id="overview-title" class="visually-hidden">How Sheep Tag 2 plays</h2>
+      <OverviewIntro headingLevel={2} />
+    </div>
+  </section>
+
   <Screenshots />
+  <TerrainsTeaser />
 </BaseLayout>
+
+<style>
+  .overview-band {
+    padding-block: clamp(2.5rem, 6vw, 4.5rem);
+  }
+</style>

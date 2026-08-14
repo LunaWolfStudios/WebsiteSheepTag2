@@ -1,0 +1,121 @@
+---
+/**
+ * Guides (/guides) — the table of contents for the web edition of the in-game Learn screen.
+ * It opens the way Learn does, with the block the home page also carries, then hands off to
+ * every section.
+ */
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import GameIcon from "../../components/guides/GameIcon.astro";
+import OverviewIntro from "../../components/guides/OverviewIntro.astro";
+import { SECTIONS, SECTION_GROUPS } from "../../data/guides";
+
+const title = "Guides — Sheep Tag 2";
+const description =
+  "How to play Sheep Tag 2: the round loop, the Sheep, Wolves and Spirits, the spells, farms, potions and upgrades, and the game modes.";
+---
+
+<BaseLayout title={title} description={description}>
+  <div class="wrap guides">
+    <OverviewIntro />
+
+    <section class="toc" aria-labelledby="toc-title">
+      <h2 id="toc-title" data-reveal>All guides</h2>
+      {
+        SECTION_GROUPS.map((group) => (
+          <div class="toc-group">
+            <p class="toc-label" data-reveal>{group}</p>
+            <div class="toc-grid">
+              {SECTIONS.filter((s) => s.group === group).map((s, i) => (
+                <a href={`/guides/${s.slug}`} class="toc-card" data-reveal style={`--reveal-delay: ${80 + i * 65}ms`}>
+                  <span class="toc-cell">
+                    <GameIcon icon={s.icon} alt="" size={48} />
+                  </span>
+                  <span class="toc-body">
+                    <span class="toc-name">{s.title}</span>
+                    <span class="toc-blurb">{s.blurb}</span>
+                  </span>
+                </a>
+              ))}
+            </div>
+          </div>
+        ))
+      }
+    </section>
+  </div>
+</BaseLayout>
+
+<style>
+  .guides {
+    padding-block: clamp(1.5rem, 4vw, 3rem) 4rem;
+  }
+
+  .toc {
+    margin-top: clamp(2rem, 4vw, 3rem);
+  }
+  .toc h2 {
+    font-size: clamp(1.4rem, 1.1rem + 1.2vw, 1.9rem);
+    color: var(--st-green-bright);
+  }
+  .toc-group {
+    margin-top: 1.4rem;
+  }
+  .toc-label {
+    font-family: var(--font-display);
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--st-ink-subtle);
+    margin-bottom: 0.6rem;
+  }
+  .toc-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
+    gap: 0.8rem;
+  }
+  .toc-card {
+    display: grid;
+    grid-template-columns: 68px minmax(0, 1fr);
+    gap: 0.9rem;
+    align-items: center;
+    padding: 0.9rem 1rem;
+    background: var(--st-surface);
+    border: 1px solid var(--st-border);
+    border-radius: var(--st-radius);
+    text-decoration: none;
+    color: inherit;
+    transition: border-color 0.15s ease, transform 0.15s ease;
+  }
+  .toc-card:hover {
+    border-color: color-mix(in srgb, var(--st-green) 55%, var(--st-border));
+    transform: translateY(-2px);
+  }
+  .toc-cell {
+    display: grid;
+    place-items: center;
+    width: 68px;
+    height: 68px;
+    background: radial-gradient(circle at 50% 40%, var(--st-bg-2), var(--st-surface));
+    border: 1px solid var(--st-border);
+    border-radius: 12px;
+    color: var(--st-green-bright);
+  }
+  .toc-name {
+    display: block;
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 1.08rem;
+    color: var(--st-ink);
+  }
+  .toc-card:hover .toc-name {
+    color: var(--st-green-bright);
+  }
+  .toc-blurb {
+    display: block;
+    margin-top: 0.15rem;
+    font-size: 0.88rem;
+    line-height: 1.45;
+    color: var(--st-ink-muted);
+    text-wrap: pretty;
+  }
+</style>

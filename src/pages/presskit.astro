@@ -208,7 +208,7 @@ const jsonLd = {
 
         <section id="history" aria-labelledby="history-title">
           <h2 id="history-title">History</h2>
-          {HISTORY.map((p) => <p>{p}</p>)}
+          {HISTORY.map((p) => <p set:html={p} />)}
           <ol class="timeline" aria-label="Development timeline">
             {
               TIMELINE.map((t) => (

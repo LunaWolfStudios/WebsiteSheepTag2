@@ -1,0 +1,197 @@
+---
+/**
+ * The opening of the Learn screen, as its own block: the tagline, the round in three beats,
+ * and the three roles. The guides hub leads with it and follows with its table of contents;
+ * the home page shows it on its own, since the role tiles are already the way through.
+ */
+import { Image } from "astro:assets";
+import GameIcon from "./GameIcon.astro";
+import GlyphFlow from "./GlyphFlow.astro";
+import { art } from "../../lib/art";
+import {
+  LEARN_MORE_HEADING,
+  ROLE_TILES,
+  ROUND_LOOP,
+  ROUND_LOOP_FOOTER,
+  ROUND_LOOP_HEADING,
+  TAGLINE,
+  WELCOME,
+} from "../../data/guides";
+
+interface Props {
+  /** The hub is already titled, so it takes the plain heading; the home page needs an h2. */
+  headingLevel?: 1 | 2;
+}
+
+const { headingLevel = 1 } = Astro.props;
+const Tagline = headingLevel === 1 ? "h1" : "h2";
+
+const loopSteps = ROUND_LOOP.map((s) => ({
+  icon: s.icon,
+  alt: s.title,
+  title: s.title,
+  caption: s.caption,
+}));
+
+const signpost = art("AbilityPanel_BackgroundDesign.png");
+---
+
+<div class="overview">
+  <header class="hero" data-reveal="fade">
+    <Image src={signpost} alt="" class="hero-decor" width={300} loading="lazy" aria-hidden="true" />
+    <p class="welcome" data-reveal style="--reveal-delay: 60ms">{WELCOME}</p>
+    <Tagline class="tagline" data-reveal style="--reveal-delay: 150ms">{TAGLINE}</Tagline>
+  </header>
+
+  <section class="loop" aria-labelledby="loop-title" data-reveal>
+    <h2 id="loop-title">{ROUND_LOOP_HEADING}</h2>
+    <p class="loop-foot">{ROUND_LOOP_FOOTER}</p>
+    <GlyphFlow steps={loopSteps} size={64} delay={200} />
+  </section>
+
+  <section class="roles" aria-labelledby="roles-title" data-reveal>
+    <h2 id="roles-title">{LEARN_MORE_HEADING}</h2>
+    <div class="role-row">
+      {
+        ROLE_TILES.map((role, i) => (
+          <a
+            href={`/guides/${role.slug}`}
+            class="role"
+            data-reveal="pop"
+            style={`--reveal-delay: ${220 + i * 170}ms`}
+          >
+            <span class="role-disc">
+              <GameIcon icon={role.icon} alt="" size={120} />
+            </span>
+            <span class="role-name">{role.title}</span>
+            <span class="role-caption">{role.caption}</span>
+          </a>
+        ))
+      }
+    </div>
+  </section>
+</div>
+
+<style>
+  /* Hero ---------------------------------------------------------------- */
+  .hero {
+    position: relative;
+    overflow: hidden;
+    padding: clamp(1.5rem, 4vw, 2.75rem) clamp(1rem, 3vw, 2rem);
+    text-align: center;
+    background:
+      radial-gradient(circle at 50% 0%, color-mix(in srgb, var(--st-green-deep) 32%, transparent), transparent 70%),
+      var(--st-bg-2);
+    border: 1px solid var(--st-border);
+    border-radius: var(--st-radius-lg);
+  }
+  .hero-decor {
+    position: absolute;
+    right: -3.5rem;
+    bottom: -3rem;
+    width: clamp(180px, 24vw, 300px);
+    height: auto;
+    opacity: 0.16;
+    rotate: -8deg;
+    pointer-events: none;
+  }
+  .welcome {
+    position: relative;
+    font-family: var(--font-display);
+    font-size: 0.82rem;
+    font-weight: 500;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--st-ink-muted);
+  }
+  .tagline {
+    position: relative;
+    margin-top: 0.3rem;
+    font-family: var(--font-display);
+    font-weight: 600;
+    line-height: 1.1;
+    font-size: clamp(2rem, 1.3rem + 3.2vw, 3.4rem);
+  }
+
+  /* Round loop and roles ------------------------------------------------ */
+  .loop,
+  .roles {
+    margin-top: clamp(1.5rem, 3vw, 2.25rem);
+    padding: clamp(1.1rem, 2.5vw, 1.75rem);
+    background: var(--st-surface);
+    border: 1px solid var(--st-border);
+    border-radius: var(--st-radius-lg);
+    text-align: center;
+  }
+  .loop h2,
+  .roles h2 {
+    font-size: clamp(1.3rem, 1.1rem + 1vw, 1.75rem);
+    color: var(--st-green-bright);
+  }
+  .loop-foot {
+    margin-top: 0.15rem;
+    margin-bottom: 0.5rem;
+    font-size: 0.92rem;
+    color: var(--st-ink-subtle);
+  }
+
+  .role-row {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: clamp(1rem, 3vw, 2.5rem);
+    margin-top: 1.2rem;
+  }
+  .role {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.3rem;
+    width: 200px;
+    text-decoration: none;
+    color: inherit;
+  }
+  /* The learn-more disc, ringed by a light that brightens on hover. */
+  .role-disc {
+    display: grid;
+    place-items: center;
+    width: 168px;
+    height: 168px;
+    margin-bottom: 0.5rem;
+    border-radius: 50%;
+    background: radial-gradient(circle at 50% 45%, color-mix(in srgb, var(--st-green-deep) 55%, transparent), var(--st-bg-2) 72%);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--st-gold) 22%, transparent);
+    transition: box-shadow 0.18s ease, transform 0.18s ease;
+  }
+  .role:hover .role-disc {
+    transform: translateY(-3px);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--st-gold) 60%, transparent), 0 0 26px color-mix(in srgb, var(--st-gold) 22%, transparent);
+  }
+  .role-name {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 1.25rem;
+    color: var(--st-ink);
+  }
+  .role:hover .role-name {
+    color: var(--st-green-bright);
+  }
+  .role-caption {
+    font-size: 0.9rem;
+    color: var(--st-ink-muted);
+    text-wrap: balance;
+  }
+
+  @media (max-width: 520px) {
+    .role {
+      width: 150px;
+    }
+    .role-disc {
+      width: 128px;
+      height: 128px;
+    }
+    .role-disc :global(.icon-box) {
+      --size: 92px;
+    }
+  }
+</style>

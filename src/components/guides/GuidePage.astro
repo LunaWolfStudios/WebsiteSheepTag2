@@ -1,0 +1,359 @@
+---
+/**
+ * The shell every guide section sits in: the section rail (the web answer to the Learn
+ * screen's tab rail), the page header, and the pager out the bottom. The wheat decor is lifted
+ * from the same lobby art the Learn panel wears behind its own content.
+ */
+import { Image } from "astro:assets";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import GameIcon from "./GameIcon.astro";
+import Icon from "../Icon.astro";
+import { art } from "../../lib/art";
+import { NAV_SECTIONS, SECTIONS, SECTION_GROUPS, sectionBySlug, sectionHref } from "../../data/guides";
+
+interface Props {
+  slug: string;
+  /** Overrides the section's own blurb when the page wants a longer deck. */
+  intro?: string;
+  /**
+   * The intro is the first paragraph of the page's prose rather than a summary above it, so it
+   * spaces like a paragraph. The roles do this: their deck is the game's own opening line.
+   */
+  bodyIntro?: boolean;
+  title?: string;
+  description?: string;
+}
+
+const { slug, intro, bodyIntro = false, title, description } = Astro.props;
+const section = sectionBySlug(slug);
+
+const index = SECTIONS.findIndex((s) => s.slug === slug);
+const prev = index > 0 ? SECTIONS[index - 1] : null;
+const next = index < SECTIONS.length - 1 ? SECTIONS[index + 1] : null;
+
+const deck = intro ?? section.blurb;
+// Each role leads with its portrait in the lobby's gold-ringed disc. The Spirit's portrait is
+// the multiboard head, so it sits in the same disc without needing the circular clip a painted
+// bust does — GameIcon works that out from the art itself.
+const headerIcon = section.headerIcon ?? section.icon;
+const headerDisc = section.group === "Roles";
+const wheat = art("AbilityPanel_BackgroundDesign_Left.png");
+---
+
+<BaseLayout
+  title={title ?? `${section.title} — Sheep Tag 2 Guides`}
+  description={description ?? deck}
+>
+  <div class="wrap guide">
+    <nav class="crumbs" aria-label="Breadcrumb">
+      <a href="/guides">Guides</a>
+      <span aria-hidden="true">/</span>
+      <span aria-current="page">{section.title}</span>
+    </nav>
+
+    <div class="guide-grid">
+      <aside class="rail" aria-label="Guide sections" data-reveal="fade">
+        <div class="rail-inner">
+          {
+            SECTION_GROUPS.map((group) => (
+              <div class="rail-group">
+                <p class="rail-label">{group}</p>
+                <ul>
+                  {NAV_SECTIONS.filter((s) => s.group === group).map((s) => (
+                    <li>
+                      <a
+                        href={sectionHref(s)}
+                        class:list={["rail-link", { active: s.slug === slug }]}
+                        aria-current={s.slug === slug ? "page" : undefined}
+                      >
+                        <GameIcon icon={s.icon} size={22} />
+                        {s.title}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))
+          }
+          <Image src={wheat} alt="" class="rail-decor" width={170} loading="lazy" aria-hidden="true" />
+        </div>
+      </aside>
+
+      <div class="guide-main">
+        <header class="guide-head" data-reveal>
+          <span class:list={["head-badge", { disc: headerDisc }]}>
+            <GameIcon icon={headerIcon} size={headerDisc ? 62 : 44} />
+          </span>
+          <div class="head-text">
+            <h1>{section.title}</h1>
+            {section.kicker && <p class="kicker">{section.kicker}</p>}
+          </div>
+        </header>
+        <p class:list={["deck", { flush: bodyIntro }]} data-reveal style="--reveal-delay: 90ms">
+          {deck}
+        </p>
+
+        <div class="guide-body"><slot /></div>
+
+        <nav class="pager" aria-label="More guides">
+          {
+            prev ? (
+              <a href={`/guides/${prev.slug}`} class="pager-link prev">
+                <Icon name="chevronLeft" size={18} class="pager-chev" />
+                <span>
+                  <span class="pager-kicker">Previous</span>
+                  {prev.title}
+                </span>
+              </a>
+            ) : (
+              <span />
+            )
+          }
+          {
+            next && (
+              <a href={`/guides/${next.slug}`} class="pager-link next">
+                <span>
+                  <span class="pager-kicker">Next</span>
+                  {next.title}
+                </span>
+                <Icon name="chevronRight" size={18} class="pager-chev" />
+              </a>
+            )
+          }
+        </nav>
+      </div>
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .guide {
+    padding-block: clamp(1.2rem, 3vw, 2rem) 4rem;
+  }
+
+  .crumbs {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: var(--font-display);
+    font-size: 0.86rem;
+    color: var(--st-ink-subtle);
+  }
+  .crumbs a {
+    color: var(--st-ink-muted);
+    text-decoration: none;
+  }
+  .crumbs a:hover {
+    color: var(--st-green-bright);
+  }
+
+  .guide-grid {
+    display: grid;
+    grid-template-columns: 232px minmax(0, 1fr);
+    gap: clamp(1.5rem, 3vw, 2.75rem);
+    align-items: start;
+    margin-top: 1rem;
+  }
+
+  /* Rail ---------------------------------------------------------------- */
+  .rail-inner {
+    position: sticky;
+    top: calc(var(--st-header-h) + 1rem);
+    padding: 1rem 0.9rem 0;
+    background: var(--st-surface);
+    border: 1px solid var(--st-border);
+    border-radius: var(--st-radius-lg);
+    overflow: hidden;
+  }
+  .rail-group + .rail-group {
+    margin-top: 1rem;
+    padding-top: 0.9rem;
+    border-top: 1px solid var(--st-border);
+  }
+  .rail-label {
+    font-family: var(--font-display);
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--st-ink-subtle);
+    padding-inline: 0.5rem;
+    margin-bottom: 0.35rem;
+  }
+  .rail ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .rail-link {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.42rem 0.55rem;
+    border-radius: 10px;
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: 0.94rem;
+    color: var(--st-ink);
+    text-decoration: none;
+    transition: background-color 0.12s ease, color 0.12s ease;
+  }
+  .rail-link:hover {
+    background: var(--st-surface-hover);
+    color: var(--st-green-bright);
+  }
+  /* The lobby's active tab: a deep green pill under always-light ink. */
+  .rail-link.active {
+    background: var(--st-green-deep);
+    color: var(--st-ink);
+  }
+  .rail-decor {
+    display: block;
+    width: 150px;
+    height: auto;
+    margin: 0.4rem auto -0.5rem;
+    opacity: 0.3;
+    pointer-events: none;
+  }
+
+  /* Main ---------------------------------------------------------------- */
+  .guide-head {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+  }
+  .head-badge {
+    display: grid;
+    place-items: center;
+    color: var(--st-green-bright);
+    flex-shrink: 0;
+  }
+  /* The role portrait wears the lobby's gold-ringed disc. */
+  .head-badge.disc {
+    width: 74px;
+    height: 74px;
+    border-radius: 50%;
+    background: radial-gradient(
+      circle at 50% 45%,
+      color-mix(in srgb, var(--st-green-deep) 55%, transparent),
+      var(--st-bg-2) 74%
+    );
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--st-gold) 26%, transparent);
+  }
+  h1 {
+    font-size: clamp(1.9rem, 1.4rem + 2.2vw, 2.8rem);
+  }
+  .kicker {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: 0.95rem;
+    letter-spacing: 0.04em;
+    color: var(--st-ink-subtle);
+  }
+  .deck {
+    margin-top: 0.6rem;
+    margin-bottom: clamp(1.5rem, 3vw, 2.25rem);
+    color: var(--st-ink-muted);
+    font-size: 1.03rem;
+    max-width: 80ch;
+    text-wrap: pretty;
+  }
+  /* Reading as body text, it takes the gap between paragraphs rather than the deck's own. */
+  .deck.flush {
+    margin-bottom: 0.85rem;
+  }
+  /* One rhythm for every block a section drops in, whatever it is. */
+  .guide-body {
+    display: grid;
+    gap: clamp(1.75rem, 3.5vw, 2.5rem);
+  }
+
+  /* Pager --------------------------------------------------------------- */
+  .pager {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-top: clamp(2.5rem, 5vw, 3.5rem);
+    padding-top: 1.4rem;
+    border-top: 1px solid var(--st-border);
+  }
+  .pager-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    font-family: var(--font-display);
+    font-weight: 600;
+    color: var(--st-ink);
+    text-decoration: none;
+  }
+  .pager-link:hover {
+    color: var(--st-green-bright);
+  }
+  .pager-link.next {
+    margin-left: auto;
+    text-align: right;
+  }
+  .pager-kicker {
+    display: block;
+    font-family: var(--font-body);
+    font-weight: 400;
+    font-size: 0.74rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--st-ink-subtle);
+  }
+  .pager-chev {
+    flex-shrink: 0;
+    color: var(--st-ink-subtle);
+  }
+
+  /* Narrow: the rail becomes a chip scroller above the page. */
+  @media (max-width: 900px) {
+    .guide-grid {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 1.25rem;
+    }
+    .rail-inner {
+      position: static;
+      display: flex;
+      gap: 0.9rem;
+      padding: 0.6rem 0.7rem;
+      overflow-x: auto;
+      overscroll-behavior-x: contain;
+      scrollbar-width: thin;
+    }
+    .rail-group + .rail-group {
+      margin: 0;
+      padding: 0 0 0 0.9rem;
+      border-top: none;
+      border-left: 1px solid var(--st-border);
+    }
+    .rail-group {
+      flex-shrink: 0;
+    }
+    .rail ul {
+      display: flex;
+      gap: 0.35rem;
+    }
+    .rail-link {
+      white-space: nowrap;
+      padding: 0.35rem 0.6rem;
+    }
+    .rail-decor {
+      display: none;
+    }
+  }
+  @media (max-width: 560px) {
+    .pager {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.8rem;
+    }
+    .pager-link.next {
+      margin-left: 0;
+      text-align: left;
+      flex-direction: row-reverse;
+    }
+  }
+</style>

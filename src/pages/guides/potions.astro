@@ -1,0 +1,16 @@
+---
+import GuidePage from "../../components/guides/GuidePage.astro";
+import EntryGrid from "../../components/guides/EntryGrid.astro";
+import SectionLinks from "../../components/guides/SectionLinks.astro";
+import { POTIONS } from "../../data/guides";
+---
+
+<GuidePage
+  slug="potions"
+  title="Potions — Sheep Tag 2 Guides"
+  intro="A Wolf buys potions with gold to gain an edge in the moment it needs one. They sit in the inventory until they're drunk, so the timing is the whole skill."
+>
+  <EntryGrid entries={POTIONS} />
+
+  <SectionLinks slugs={["upgrades", "wolves", "spells"]} />
+</GuidePage>

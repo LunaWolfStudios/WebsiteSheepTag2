@@ -1,0 +1,160 @@
+---
+/**
+ * The build menu's upgrade tree. Each row starts at a farm you can build outright and follows
+ * every road out of it — the same paths the Learn screen prints as a line of text under an
+ * upgrade-only farm, drawn instead.
+ *
+ * Every chain in a row shares one grid, so a second-step farm sits under the other rows'
+ * second-step farms no matter how long the names before it run. The chains are display:contents
+ * wrappers, which is what puts their cells in the parent's columns.
+ */
+import GameIcon from "./GameIcon.astro";
+import { FARM_BY_NAME, UPGRADE_TREE } from "../../data/guides";
+
+// One column pair (arrow + farm) per step, sized to the longest chain on the page.
+const steps = Math.max(...UPGRADE_TREE.flatMap((r) => r.chains.map((c) => c.length)));
+---
+
+<div class="tree" style={`--steps: ${steps}`}>
+  {
+    UPGRADE_TREE.map(({ root, chains }, i) => (
+      <div class="root-row" data-reveal style={`--reveal-delay: ${120 + i * 90}ms`}>
+        <div class="node root">
+          <span class="cell">
+            <GameIcon icon={FARM_BY_NAME[root].icon} alt="" size={52} />
+          </span>
+          <span class="label">{root}</span>
+        </div>
+        <div class="branches">
+          {chains.map((chain) => (
+            <div class="chain">
+              {chain.map((name) => (
+                <>
+                  <span class="arrow" aria-hidden="true">
+                    <GameIcon icon="UI_Icon_ArrowRight.png" size={18} />
+                  </span>
+                  <div class="node">
+                    <span class="cell">
+                      <GameIcon icon={FARM_BY_NAME[name].icon} alt="" size={44} />
+                    </span>
+                    <span class="label">{name}</span>
+                  </div>
+                </>
+              ))}
+              {/* Pad short chains so the next row's columns still line up. */}
+              {Array.from({ length: steps - chain.length }, () => (
+                <>
+                  <span />
+                  <span />
+                </>
+              ))}
+            </div>
+          ))}
+        </div>
+      </div>
+    ))
+  }
+</div>
+
+<style>
+  .tree {
+    display: grid;
+    gap: 0.7rem;
+  }
+  .root-row {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.75rem 0.9rem;
+    background: var(--st-surface);
+    border: 1px solid var(--st-border);
+    border-radius: var(--st-radius);
+  }
+  /* An arrow column and a farm column per step, shared by every chain in the row. */
+  .branches {
+    display: grid;
+    grid-template-columns: repeat(var(--steps), auto minmax(0, max-content));
+    justify-content: start;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: 0;
+  }
+  .chain {
+    display: contents;
+  }
+  .node {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: 0;
+  }
+  .cell {
+    display: grid;
+    place-items: center;
+    width: 56px;
+    height: 56px;
+    background: radial-gradient(circle at 50% 40%, var(--st-bg-2), var(--st-surface));
+    border: 1px solid var(--st-border);
+    border-radius: 11px;
+    flex-shrink: 0;
+  }
+  .node.root {
+    flex-shrink: 0;
+    width: 168px;
+  }
+  .node.root .cell {
+    width: 66px;
+    height: 66px;
+    border-color: color-mix(in srgb, var(--st-gold) 40%, var(--st-border));
+  }
+  .label {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: 0.9rem;
+    line-height: 1.25;
+    color: var(--st-ink-muted);
+  }
+  .node.root .label {
+    font-weight: 600;
+    font-size: 0.98rem;
+    color: var(--st-ink);
+  }
+  .arrow {
+    display: inline-flex;
+    color: var(--st-ink-subtle);
+    flex-shrink: 0;
+  }
+
+  /* Too narrow to hold the columns: each chain goes back to its own wrapping row. */
+  @media (max-width: 860px) {
+    .root-row {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 0.5rem;
+    }
+    .node.root {
+      width: auto;
+    }
+    .branches {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .chain {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      padding-left: 0.5rem;
+    }
+    /* The padding cells only exist to hold columns open. */
+    .chain > span:empty {
+      display: none;
+    }
+  }
+  @media (max-width: 460px) {
+    .chain .node .cell {
+      width: 44px;
+      height: 44px;
+    }
+  }
+</style>

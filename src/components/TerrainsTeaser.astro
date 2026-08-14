@@ -1,0 +1,309 @@
+---
+/**
+ * Home-page taste of the community terrain library: three previews at a time, each opening
+ * that terrain on /terrains, with the way through to the whole library underneath.
+ *
+ * The build renders a fixed set so the strip reads without JavaScript and for crawlers; on
+ * load the browser reshuffles the whole library into the same cards, so a refresh brings a
+ * different dozen instead of the same three every visit. Same native scroll-snap track the
+ * screenshot gallery uses, so a swipe works either way.
+ */
+import Icon from "./Icon.astro";
+import terrainData from "../data/terrains.json";
+import { pickFeatured, type TerrainPick } from "../lib/terrainPicks";
+
+interface Terrain extends Omit<TerrainPick, "thumb"> {
+  slug: string;
+  thumb: string | null;
+}
+
+const { terrains } = terrainData as { count: number; terrains: Terrain[] };
+
+// Only the fields a card renders, so the pool in the page stays small.
+const pool: TerrainPick[] = terrains
+  .filter((t): t is Terrain & { thumb: string } => Boolean(t.thumb))
+  .map(({ name, author, size, tileset, thumb, id }) => ({ name, author, size, tileset, thumb, id }));
+
+// Four screens of three, so paging through gets somewhere before it comes back around.
+const SLOTS = 12;
+const featured = pickFeatured(pool, SLOTS);
+---
+
+<section class="section terrains-teaser" id="terrains-teaser" aria-labelledby="tt-title">
+  <div class="wrap">
+    <header class="tt-head" data-reveal>
+      <h2 id="tt-title">Community Terrains</h2>
+      <p>
+        Sheep Tag 2 ships with a level editor, and the community has been busy! Every terrain here
+        is free to download and play.
+      </p>
+    </header>
+
+    <div class="tt-stage" data-reveal style="--reveal-delay: 90ms">
+      <ul
+        class="tt-track"
+        id="tt-track"
+        role="group"
+        aria-roledescription="carousel"
+        aria-label="Community terrains"
+      >
+        {
+          featured.map((t) => (
+            <li class="tt-item">
+              <a class="tt-card" href={`/terrains?id=${encodeURIComponent(t.id)}`}>
+                <img src={t.thumb} alt={`${t.name} terrain preview`} width="480" height="480" loading="lazy" decoding="async" />
+                <span class="tt-body">
+                  <span class="tt-name">{t.name}</span>
+                  <span class="tt-meta">{`${t.author} · ${t.size} · ${t.tileset}`}</span>
+                </span>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+
+      {/* The whole library, for the reshuffle on load. */}
+      <script type="application/json" id="tt-pool" is:inline set:html={JSON.stringify(pool)} />
+
+      <button type="button" class="tt-arrow prev" id="tt-prev" aria-label="Previous terrains" hidden>
+        <Icon name="chevronLeft" size={26} />
+      </button>
+      <button type="button" class="tt-arrow next" id="tt-next" aria-label="More terrains" hidden>
+        <Icon name="chevronRight" size={26} />
+      </button>
+    </div>
+
+    <div class="tt-cta" data-reveal style="--reveal-delay: 160ms">
+      <a class="btn btn--primary" href="/terrains">View all terrains</a>
+    </div>
+  </div>
+</section>
+
+<style>
+  .terrains-teaser {
+    border-top: 1px solid var(--st-border);
+  }
+  .tt-head {
+    text-align: center;
+    margin-bottom: clamp(1.2rem, 3vw, 2rem);
+  }
+  .tt-head h2 {
+    font-size: clamp(1.7rem, 1.2rem + 1.6vw, 2.4rem);
+  }
+  .tt-head p {
+    margin: 0.5rem auto 0;
+    max-width: 60ch;
+    color: var(--st-ink-muted);
+    text-wrap: pretty;
+  }
+
+  /* Gutters wide enough to hold the arrows clear of the cards, so a press can never land on
+     the terrain behind one. */
+  .tt-stage {
+    position: relative;
+    padding-inline: 3.4rem;
+  }
+  .tt-track {
+    display: flex;
+    gap: 1rem;
+    margin: 0;
+    padding: 0.2rem;
+    list-style: none;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+  }
+  .tt-track::-webkit-scrollbar {
+    display: none;
+  }
+  /* Three across on a wide screen, then two, then one. */
+  .tt-item {
+    flex: 0 0 calc((100% - 2rem) / 3);
+    scroll-snap-align: start;
+  }
+  .tt-card {
+    display: block;
+    height: 100%;
+    background: var(--st-surface);
+    border: 1px solid var(--st-border);
+    border-radius: var(--st-radius);
+    overflow: hidden;
+    text-decoration: none;
+    color: inherit;
+    transition: border-color 0.15s ease, transform 0.15s ease;
+  }
+  .tt-card:hover {
+    border-color: color-mix(in srgb, var(--st-green) 55%, var(--st-border));
+    transform: translateY(-3px);
+  }
+  .tt-card img {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1;
+    object-fit: cover;
+    background: var(--st-bg-2);
+  }
+  .tt-body {
+    display: block;
+    padding: 0.75rem 0.9rem 0.85rem;
+  }
+  .tt-name {
+    display: block;
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 1.05rem;
+    color: var(--st-ink);
+  }
+  .tt-card:hover .tt-name {
+    color: var(--st-green-bright);
+  }
+  .tt-meta {
+    display: block;
+    margin-top: 0.1rem;
+    font-size: 0.82rem;
+    color: var(--st-ink-subtle);
+  }
+
+  .tt-arrow {
+    position: absolute;
+    top: 38%;
+    translate: 0 -50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border: 1px solid rgba(244, 239, 225, 0.18);
+    border-radius: 50%;
+    background: rgba(8, 10, 6, 0.72);
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
+    color: var(--st-ink);
+    cursor: pointer;
+    transition: background-color 0.15s ease, color 0.15s ease, opacity 0.15s ease;
+  }
+  .tt-arrow.prev {
+    left: 0;
+  }
+  .tt-arrow.next {
+    right: 0;
+  }
+  .tt-arrow:hover {
+    background: rgba(8, 10, 6, 0.9);
+    color: var(--st-green-bright);
+  }
+  /* The script drives these, so they stay away until it has run. The class rule above would
+     otherwise out-specify the browser's own [hidden] handling. */
+  .tt-arrow[hidden] {
+    display: none;
+  }
+
+  .tt-cta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: clamp(1.2rem, 3vw, 1.8rem);
+  }
+  .tt-submit {
+    font-size: 0.92rem;
+    color: var(--st-ink-subtle);
+    text-decoration: none;
+  }
+  .tt-submit:hover {
+    color: var(--st-green-bright);
+  }
+
+  @media (max-width: 900px) {
+    .tt-item {
+      flex-basis: calc((100% - 1rem) / 2);
+    }
+  }
+  @media (max-width: 560px) {
+    .tt-stage {
+      padding-inline: 0;
+    }
+    .tt-item {
+      flex-basis: 82%;
+    }
+    .tt-arrow {
+      display: none;
+    }
+  }
+</style>
+
+<script>
+  import { pickFeatured, shuffled, type TerrainPick } from "../lib/terrainPicks";
+
+  const track = document.getElementById("tt-track");
+  const prev = document.getElementById("tt-prev") as HTMLButtonElement | null;
+  const next = document.getElementById("tt-next") as HTMLButtonElement | null;
+
+  if (track && prev && next) {
+    const items = Array.from(track.querySelectorAll<HTMLElement>(".tt-item"));
+
+    // Reshuffle the whole library into the cards the build rendered, so every visit gets a
+    // different dozen. Same picker as the build, so the spread across tilesets and authors
+    // survives the randomness.
+    const poolEl = document.getElementById("tt-pool");
+    if (poolEl?.textContent) {
+      try {
+        const pool = JSON.parse(poolEl.textContent) as TerrainPick[];
+        const picks = pickFeatured(shuffled(pool), items.length);
+        items.forEach((item, i) => {
+          const t = picks[i];
+          // Fewer maps than slots: retire the spare cards rather than leave them stale.
+          if (!t) {
+            item.hidden = true;
+            return;
+          }
+          const link = item.querySelector("a")!;
+          const img = item.querySelector("img")!;
+          link.href = `/terrains?id=${encodeURIComponent(t.id)}`;
+          img.src = t.thumb;
+          img.alt = `${t.name} terrain preview`;
+          item.querySelector(".tt-name")!.textContent = t.name;
+          item.querySelector(".tt-meta")!.textContent = `${t.author} · ${t.size} · ${t.tileset}`;
+        });
+      } catch {
+        // A malformed pool just leaves the rendered set in place.
+      }
+    }
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const behavior = (): ScrollBehavior => (reduced.matches ? "auto" : "smooth");
+
+    /**
+     * Step by a whole number of cards. Scrolling by the track's own width lands part-way
+     * through one, and mandatory snap then pulls it back to where it started — which is what
+     * made pressing next look like nothing had moved.
+     */
+    const pitch = () =>
+      items.length > 1 ? items[1].offsetLeft - items[0].offsetLeft : items[0]?.offsetWidth || 1;
+    const perPage = () => Math.max(1, Math.round(track.clientWidth / pitch()));
+
+    // The strip has two ends and stops at them — snapping back to the start mid-press read as
+    // the page reloading. Each arrow only exists while there is somewhere to go that way, which
+    // is safe now they sit in their own gutter: an arrow that goes away leaves empty space
+    // rather than a live card under the cursor.
+    const EDGE = 4;
+    const step = (dir: number) => {
+      const max = track.scrollWidth - track.clientWidth;
+      const target = track.scrollLeft + dir * perPage() * pitch();
+      track.scrollTo({ left: Math.max(0, Math.min(max, target)), behavior: behavior() });
+    };
+
+    const syncArrows = () => {
+      const max = track.scrollWidth - track.clientWidth;
+      prev.hidden = track.scrollLeft <= EDGE;
+      next.hidden = track.scrollLeft >= max - EDGE;
+    };
+
+    prev.addEventListener("click", () => step(-1));
+    next.addEventListener("click", () => step(1));
+    track.addEventListener("scroll", syncArrows, { passive: true });
+    new ResizeObserver(syncArrows).observe(track);
+    syncArrows();
+  }
+</script>

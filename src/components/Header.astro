@@ -2,23 +2,29 @@
 import { Image } from "astro:assets";
 import farmIcon from "../../icons/SheepTag2_Icon_96x96.png";
 import { LINKS } from "../data/links";
+import { NAV_SECTIONS, SECTION_GROUPS, sectionHref } from "../data/guides";
 import Icon from "./Icon.astro";
 
 const path = Astro.url.pathname;
 const isActive = (href: string) =>
   href === "/" ? path === "/" : path.startsWith(href);
 
+// Home leads and Guides closes the internal set, rendered by hand for its section menu.
 const internal = [
-  { href: "/", label: "Home" },
   { href: "/terrains", label: "Terrains" },
-  { href: "/farms", label: "Farms" },
   { href: "/presskit", label: "Press Kit" },
 ];
+// Kickstarter funded back in 2021 — it lives on in the footer socials and the press kit
+// rather than taking a slot in the primary nav.
 const external = [
-  { href: LINKS.kickstarter, label: "Kickstarter" },
   { href: LINKS.soundtrack, label: "Soundtrack" },
   { href: LINKS.discord, label: "Discord" },
 ];
+
+const guideGroups = SECTION_GROUPS.map((group) => ({
+  group,
+  items: NAV_SECTIONS.filter((s) => s.group === group),
+}));
 ---
 
 <header class="site-header">
@@ -36,6 +42,7 @@ const external = [
     </a>
 
     <nav class="nav nav-desktop" aria-label="Primary">
+      <a href="/" class:list={["nav-link", { active: isActive("/") }]}>Home</a>
       {
         internal.map((l) => (
           <a href={l.href} class:list={["nav-link", { active: isActive(l.href) }]}>
@@ -43,6 +50,37 @@ const external = [
           </a>
         ))
       }
+
+      <div class="nav-item has-menu">
+        <a href="/guides" class:list={["nav-link", { active: isActive("/guides") }]}>
+          Guides
+          <Icon name="chevronDown" size={14} class="menu-chev" />
+        </a>
+        <div class="mega" role="group" aria-label="Guide sections">
+          <div class="mega-inner">
+            {
+              guideGroups.map(({ group, items }) => (
+                <div class="mega-col">
+                  <p class="mega-label">{group}</p>
+                  <ul>
+                    {items.map((s) => (
+                      <li>
+                        <a
+                          href={sectionHref(s)}
+                          class:list={["mega-link", { active: path === sectionHref(s) }]}
+                        >
+                          {s.title}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))
+            }
+          </div>
+        </div>
+      </div>
+
       {
         external.map((l) => (
           <a href={l.href} class="nav-link" target="_blank" rel="noopener">
@@ -72,7 +110,20 @@ const external = [
 
   <nav class="nav-mobile" id="mobile-nav" aria-label="Primary (mobile)" hidden>
     <div class="wrap nav-mobile-inner">
+      <a href="/" class="mobile-link">Home</a>
       {internal.map((l) => <a href={l.href} class="mobile-link">{l.label}</a>)}
+      <a href="/guides" class="mobile-link">Guides</a>
+      <ul class="mobile-sub">
+        {
+          NAV_SECTIONS.map((s) => (
+            <li>
+              <a href={sectionHref(s)} class="mobile-sublink">
+                {s.title}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
       {
         external.map((l) => (
           <a href={l.href} class="mobile-link" target="_blank" rel="noopener">
@@ -147,6 +198,90 @@ const external = [
   .ext-ico {
     opacity: 0.55;
   }
+
+  /* Guides mega menu ---------------------------------------------------- */
+  .nav-item {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+  }
+  .menu-chev {
+    opacity: 0.6;
+    transition: rotate 0.15s ease;
+  }
+  .mega {
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    translate: -50% 0;
+    padding-top: 0.65rem;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.14s ease, translate 0.14s ease;
+  }
+  .mega-inner {
+    display: flex;
+    gap: 1.6rem;
+    padding: 1rem 1.25rem;
+    background: var(--st-surface);
+    border: 1px solid var(--st-border);
+    border-radius: var(--st-radius);
+    box-shadow: var(--st-shadow-lg);
+  }
+  .mega-label {
+    font-family: var(--font-display);
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--st-ink-subtle);
+    margin-bottom: 0.35rem;
+  }
+  .mega ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .mega-link {
+    display: block;
+    padding: 0.28rem 0.5rem;
+    margin-inline: -0.5rem;
+    border-radius: 8px;
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: 0.92rem;
+    color: var(--st-ink);
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  .mega-link:hover {
+    background: var(--st-surface-hover);
+    color: var(--st-green-bright);
+  }
+  .mega-link.active {
+    color: var(--st-green-bright);
+  }
+  /* Pointer or keyboard — the panel opens either way, and Escape closes it. */
+  @media (hover: hover) {
+    .nav-item.has-menu:hover .mega {
+      opacity: 1;
+      visibility: visible;
+      translate: -50% 2px;
+    }
+    .nav-item.has-menu:hover .menu-chev {
+      rotate: 180deg;
+    }
+  }
+  .nav-item.has-menu:focus-within .mega {
+    opacity: 1;
+    visibility: visible;
+    translate: -50% 2px;
+  }
+  .nav-item.has-menu.closed .mega {
+    opacity: 0;
+    visibility: hidden;
+  }
+
   .header-actions {
     display: flex;
     align-items: center;
@@ -170,6 +305,8 @@ const external = [
   .nav-mobile {
     border-top: 1px solid var(--st-border);
     background: var(--st-bg-2);
+    max-height: calc(100dvh - var(--st-header-h));
+    overflow-y: auto;
   }
   .nav-mobile-inner {
     display: flex;
@@ -189,12 +326,32 @@ const external = [
     padding: 0.7em 0.2em;
     border-bottom: 1px solid var(--st-border);
   }
+  .mobile-sub {
+    list-style: none;
+    margin: 0.2rem 0 0.5rem;
+    padding: 0 0 0 0.9rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 0.1rem 0.8rem;
+    border-left: 2px solid var(--st-border);
+  }
+  .mobile-sublink {
+    display: block;
+    padding: 0.45em 0.2em;
+    font-family: var(--font-display);
+    font-size: 0.98rem;
+    color: var(--st-ink-muted);
+    text-decoration: none;
+  }
+  .mobile-sublink:hover {
+    color: var(--st-green-bright);
+  }
   .mobile-wishlist {
     margin-top: 0.9rem;
     align-self: flex-start;
   }
 
-  @media (max-width: 900px) {
+  @media (max-width: 1080px) {
     .nav-desktop {
       display: none;
     }
@@ -202,7 +359,7 @@ const external = [
       display: inline-flex;
     }
   }
-  @media (min-width: 901px) {
+  @media (min-width: 1081px) {
     .nav-mobile {
       display: none;
     }
@@ -228,6 +385,22 @@ const external = [
     document.addEventListener("keydown", (e) => {
       if (e.key === "Escape" && toggle.getAttribute("aria-expanded") === "true")
         setOpen(false);
+    });
+  }
+
+  // The Guides panel opens on hover and on keyboard focus, both from CSS. Escape has to
+  // force it shut, and the class is dropped again as soon as the pointer or focus leaves.
+  const guides = document.querySelector<HTMLElement>(".nav-item.has-menu");
+  if (guides) {
+    const reopen = () => guides.classList.remove("closed");
+    document.addEventListener("keydown", (e) => {
+      if (e.key !== "Escape") return;
+      guides.classList.add("closed");
+      (document.activeElement as HTMLElement | null)?.blur();
+    });
+    guides.addEventListener("mouseleave", reopen);
+    guides.addEventListener("focusout", (e) => {
+      if (!guides.contains(e.relatedTarget as Node | null)) reopen();
     });
   }
 </script>

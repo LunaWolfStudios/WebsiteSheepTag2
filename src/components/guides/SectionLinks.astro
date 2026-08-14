@@ -1,0 +1,91 @@
+---
+/** Signposts on to related sections, in the same shape the table of contents uses. */
+import GameIcon from "./GameIcon.astro";
+import { sectionBySlug } from "../../data/guides";
+
+interface Props {
+  slugs: string[];
+  heading?: string;
+}
+
+const { slugs, heading = "Read next" } = Astro.props;
+const sections = slugs.map(sectionBySlug);
+---
+
+<section class="links">
+  <h2 data-reveal>{heading}</h2>
+  <div class="link-grid">
+    {
+      sections.map((s, i) => (
+        <a href={`/guides/${s.slug}`} class="link-card" data-reveal style={`--reveal-delay: ${90 + i * 70}ms`}>
+          <span class="link-cell">
+            <GameIcon icon={s.icon} alt="" size={40} />
+          </span>
+          <span>
+            <span class="link-name">{s.title}</span>
+            <span class="link-blurb">{s.blurb}</span>
+          </span>
+        </a>
+      ))
+    }
+  </div>
+</section>
+
+<style>
+  .links h2 {
+    font-size: 1.15rem;
+    color: var(--st-ink-subtle);
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    margin-bottom: 0.7rem;
+  }
+  .link-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+    gap: 0.7rem;
+  }
+  .link-card {
+    display: grid;
+    grid-template-columns: 56px minmax(0, 1fr);
+    gap: 0.8rem;
+    align-items: center;
+    padding: 0.75rem 0.9rem;
+    background: var(--st-surface);
+    border: 1px solid var(--st-border);
+    border-radius: var(--st-radius);
+    text-decoration: none;
+    color: inherit;
+    transition: border-color 0.15s ease, transform 0.15s ease;
+  }
+  .link-card:hover {
+    border-color: color-mix(in srgb, var(--st-green) 55%, var(--st-border));
+    transform: translateY(-2px);
+  }
+  .link-cell {
+    display: grid;
+    place-items: center;
+    width: 56px;
+    height: 56px;
+    background: radial-gradient(circle at 50% 40%, var(--st-bg-2), var(--st-surface));
+    border: 1px solid var(--st-border);
+    border-radius: 11px;
+    color: var(--st-green-bright);
+  }
+  .link-name {
+    display: block;
+    font-family: var(--font-display);
+    font-weight: 600;
+    color: var(--st-ink);
+  }
+  .link-card:hover .link-name {
+    color: var(--st-green-bright);
+  }
+  .link-blurb {
+    display: block;
+    margin-top: 0.1rem;
+    font-size: 0.85rem;
+    line-height: 1.4;
+    color: var(--st-ink-muted);
+    text-wrap: pretty;
+  }
+</style>

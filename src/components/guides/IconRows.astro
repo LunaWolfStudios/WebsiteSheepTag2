@@ -1,0 +1,74 @@
+---
+/**
+ * A run of icon-and-line rows — the Learn screen's shape for the basic controls, the stat
+ * readouts, and the day/night pairings. Short enough that a card each would be noise.
+ */
+import GameIcon from "./GameIcon.astro";
+import type { Entry } from "../../data/guides";
+
+interface Props {
+  entries: Entry[];
+  size?: number;
+}
+
+const { entries, size = 40 } = Astro.props;
+---
+
+<dl class="rows" style={`--icon: ${size}px`}>
+  {
+    entries.map((entry, i) => (
+      <div class="row" data-reveal style={`--reveal-delay: ${90 + i * 65}ms`}>
+        <dt>
+          {/* Decorative: the term sits right beside it. */}
+          <GameIcon icon={entry.icon} size={size} />
+          <span>{entry.name}</span>
+        </dt>
+        <dd set:html={entry.description} />
+      </div>
+    ))
+  }
+</dl>
+
+<style>
+  .rows {
+    margin: 0;
+    display: grid;
+    gap: 0.7rem;
+  }
+  .row {
+    display: grid;
+    grid-template-columns: minmax(0, 210px) minmax(0, 1fr);
+    gap: 0.4rem 1rem;
+    align-items: start;
+    padding: 0.7rem 0.85rem;
+    background: var(--st-surface);
+    border: 1px solid var(--st-border);
+    border-radius: var(--st-radius);
+  }
+  dt {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 1.02rem;
+    color: var(--st-ink);
+  }
+  dd {
+    margin: 0;
+    align-self: center;
+    color: var(--st-ink-muted);
+    font-size: 0.94rem;
+    line-height: 1.5;
+  }
+
+  @media (max-width: 640px) {
+    .row {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    /* Indent under the label so the icon still anchors the row. */
+    dd {
+      padding-left: calc(0.7rem + var(--icon));
+    }
+  }
+</style>

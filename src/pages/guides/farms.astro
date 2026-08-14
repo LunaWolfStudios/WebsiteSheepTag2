@@ -1,0 +1,67 @@
+---
+/**
+ * Farms (/guides/farms) — the Sheep build menu, the upgrade paths out of it, and the farms
+ * those paths lead to. Structure comes from guides.ts; the tooltip text is joined in from
+ * farms/descriptions.tsv via the generated farms.json, so there's one place to edit a farm.
+ */
+import GuidePage from "../../components/guides/GuidePage.astro";
+import EntryGrid from "../../components/guides/EntryGrid.astro";
+import IconRows from "../../components/guides/IconRows.astro";
+import Panel from "../../components/guides/Panel.astro";
+import SectionLinks from "../../components/guides/SectionLinks.astro";
+import UpgradeTree from "../../components/guides/UpgradeTree.astro";
+import farmsData from "../../data/farms.json";
+import {
+  BUILDABLE_FARMS,
+  DESTROY_FARM,
+  UPGRADED_FARMS_INTRO,
+  UPGRADE_FARMS,
+  type Entry,
+  type FarmRef,
+} from "../../data/guides";
+
+const descriptionByName: Record<string, string> = Object.fromEntries(
+  (farmsData as Array<{ name: string; description: string }>).map((f) => [f.name, f.description]),
+);
+
+const withText = (farms: FarmRef[]): Entry[] =>
+  farms.map((farm) => {
+    const description = descriptionByName[farm.name];
+    if (!description) throw new Error(`No description for "${farm.name}" in farms/descriptions.tsv`);
+    return { ...farm, description };
+  });
+
+const buildable = withText(BUILDABLE_FARMS);
+const upgraded = withText(UPGRADE_FARMS);
+---
+
+<GuidePage
+  slug="farms"
+  title="Farms — Sheep Tag 2 Guides"
+  description="The farms of Sheep Tag 2, from the humble Straw Farm to the Magic Farm, and what each one does."
+  intro="Farms are the whole defense. Build them into dense grids that stall the pack, destroy one when it boxes you in, and build on top of yourself to hop over the farms in your way."
+>
+  <EntryGrid
+    entries={buildable}
+    title="Build menu"
+    icon="AbilityPanel_BuildIcon_Pressed.png"
+    intro="What a Sheep can raise out of thin air."
+  />
+
+  <Panel title="Upgrade paths" icon="UI_Icon_ArrowRight.png" deck={UPGRADED_FARMS_INTRO}>
+    <UpgradeTree />
+  </Panel>
+
+  <EntryGrid
+    entries={upgraded}
+    title="Upgraded Farms"
+    icon="Icon_MagicFarm.png"
+    intro="Trick and hidden farms no build menu offers. Each one grows out of a farm already standing on the field."
+  />
+
+  <Panel title="Taking one back down">
+    <IconRows entries={[DESTROY_FARM]} />
+  </Panel>
+
+  <SectionLinks slugs={["sheep", "spells", "wolves"]} />
+</GuidePage>

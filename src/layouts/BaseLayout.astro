@@ -33,6 +33,9 @@ const ogImage = new URL(image, SITE.url).href;
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    {/* Marks the document as scripted before first paint, so the reveal styles only ever
+        hide content that something is going to bring back. */}
+    <script is:inline>document.documentElement.classList.add("js");</script>
     {/* Internal navigation stays in this tab; external links and the legal pages set target="_blank" explicitly. */}
     <title>{title}</title>
     <meta name="description" content={description} />
@@ -58,11 +61,57 @@ const ogImage = new URL(image, SITE.url).href;
     <meta name="twitter:image" content={ogImage} />
 
     <slot name="head" />
+
+    {/* Metricool — website visit analytics. Listed under Service Providers in /privacy.
+        is:inline keeps the vendor snippet verbatim; it appends its own tag to <head>. */}
+    <script is:inline>
+      function loadScript(a){var b=document.getElementsByTagName("head")[0],c=document.createElement("script");c.type="text/javascript",c.src="https://tracker.metricool.com/resources/be.js",c.onreadystatechange=a,c.onload=a,b.appendChild(c)}loadScript(function(){beTracker.t({hash:"3fac8c71469ad058538d7e1aa17b22bd"})});
+    </script>
   </head>
   <body>
     <a href="#main" class="skip-link">Skip to content</a>
     <Header />
     <main id="main"><slot /></main>
     <Footer />
+    <script>
+      // Walk each [data-reveal] block in as it reaches the viewport. Once its animation has
+      // played the element is marked shown and the animation class comes off, so nothing is
+      // left pinned by animation fill.
+      const targets = document.querySelectorAll<HTMLElement>("[data-reveal]");
+      if (targets.length) {
+        const show = (el: HTMLElement) => {
+          el.addEventListener(
+            "animationend",
+            () => {
+              el.classList.add("is-shown");
+              el.classList.remove("is-in");
+            },
+            { once: true },
+          );
+          el.classList.add("is-in");
+        };
+        // No observer, or motion turned down: show everything and skip the walk-in. The
+        // styles hide these blocks, so something always has to bring them back.
+        if (
+          !("IntersectionObserver" in window) ||
+          window.matchMedia("(prefers-reduced-motion: reduce)").matches
+        ) {
+          targets.forEach((el) => el.classList.add("is-shown"));
+        } else {
+          const io = new IntersectionObserver(
+            (entries) => {
+              for (const entry of entries) {
+                if (!entry.isIntersecting) continue;
+                io.unobserve(entry.target);
+                show(entry.target as HTMLElement);
+              }
+            },
+            // A shade inside the fold, so a block starts moving just before it is fully in view.
+            { rootMargin: "0px 0px -6% 0px", threshold: 0.03 },
+          );
+          targets.forEach((el) => io.observe(el));
+        }
+      }
+    </script>
   </body>
 </html>

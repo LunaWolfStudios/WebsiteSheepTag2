@@ -23,7 +23,7 @@ const TERRAINS_DIR = path.join(ROOT, "terrains");
 const DATA_DIR = path.join(ROOT, "src", "data");
 const PUBLIC_DIR = path.join(ROOT, "public");
 
-/** Exact farm name -> icon file (§8). Two farms intentionally reuse an icon. */
+/** Exact farm name -> icon file (§8). The Tiny Magic Farm shares the Magic Farm's icon, as in game. */
 const ICON_BY_NAME: Record<string, string> = {
   "Aura Farm": "Icon_AuraFarm.png",
   "Hard Farm": "Icon_HardFarm.png",
@@ -43,7 +43,7 @@ const ICON_BY_NAME: Record<string, string> = {
   "Stick Farm": "Icon_StickFarm.png",
   "Stone Farm": "Icon_StoneFarm.png",
   "Straw Farm": "Icon_StrawFarm.png",
-  "Super Savings Farm": "Icon_SavingsFarm.png",
+  "Super Savings Farm": "Icon_SuperSavingsFarm.png",
   "Tiny Farm": "Icon_TinyFarm.png",
   "Tiny Magic Farm": "Icon_MagicFarm.png",
   "Wide Farm": "Icon_WideFarm.png",

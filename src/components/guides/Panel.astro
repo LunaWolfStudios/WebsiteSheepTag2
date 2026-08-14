@@ -1,0 +1,66 @@
+---
+/**
+ * The Learn screen's fixture: a heading, an optional deck, and whatever the section puts
+ * inside — a flow of glyphs, a run of icon rows, or a couple of paragraphs.
+ */
+import GameIcon from "./GameIcon.astro";
+
+interface Props {
+  title?: string;
+  icon?: string;
+  deck?: string;
+  /** Centres the heading over a flow chart, the way the round loop sits in game. */
+  center?: boolean;
+  class?: string;
+}
+
+const { title, icon, deck, center = false, class: className } = Astro.props;
+---
+
+<section class:list={["panel", { center }, className]} data-reveal>
+  {
+    title && (
+      <h2>
+        {icon && <GameIcon icon={icon} size={28} class="panel-glyph" />}
+        {title}
+      </h2>
+    )
+  }
+  {deck && <p class="panel-deck">{deck}</p>}
+  <slot />
+</section>
+
+<style>
+  .panel {
+    padding: clamp(1rem, 2.5vw, 1.5rem);
+    background: var(--st-bg-2);
+    border: 1px solid var(--st-border);
+    border-radius: var(--st-radius-lg);
+  }
+  .panel h2 {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    font-size: clamp(1.25rem, 1.1rem + 0.8vw, 1.6rem);
+    color: var(--st-ink);
+  }
+  .panel h2 :global(.panel-glyph) {
+    color: var(--st-green-bright);
+  }
+  .panel-deck {
+    margin-top: 0.2rem;
+    color: var(--st-ink-subtle);
+    font-size: 0.94rem;
+  }
+  .panel.center h2,
+  .panel.center .panel-deck {
+    justify-content: center;
+    text-align: center;
+  }
+  .panel > :global(* + *) {
+    margin-top: 0.85rem;
+  }
+  .panel h2 + :global(.panel-deck) {
+    margin-top: 0.2rem;
+  }
+</style>

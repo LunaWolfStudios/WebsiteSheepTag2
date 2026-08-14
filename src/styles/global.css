@@ -194,6 +194,59 @@ dialog {
   }
 }
 
+/* Reveal on scroll ------------------------------------------------------
+   Blocks walk in as they reach the viewport, and siblings can domino by setting
+   --reveal-delay. Gated on .js so a page without scripting shows everything, and the
+   observer swaps .is-in for .is-shown once each animation ends — a lingering fill would
+   otherwise pin `transform: none` and kill the hover lift on cards. */
+.js [data-reveal] {
+  opacity: 0;
+}
+.js [data-reveal].is-shown {
+  opacity: 1;
+}
+.js [data-reveal].is-in {
+  animation: reveal-rise 0.5s cubic-bezier(0.22, 0.9, 0.3, 1) both;
+  animation-delay: var(--reveal-delay, 0ms);
+}
+/* The lobby's own entrance: straight from nothing to full size, with a little overshoot. */
+.js [data-reveal="pop"].is-in {
+  animation-name: reveal-pop;
+  animation-duration: 0.42s;
+  animation-timing-function: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.js [data-reveal="fade"].is-in {
+  animation-name: reveal-fade;
+}
+@keyframes reveal-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes reveal-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.2);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+@keyframes reveal-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 /* Accessibility */
 :where(a, button, input, [tabindex]):focus-visible {
   outline: 3px solid var(--st-sky);

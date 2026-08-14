@@ -1,0 +1,54 @@
+---
+import GuidePage from "../../components/guides/GuidePage.astro";
+import GlyphFlow from "../../components/guides/GlyphFlow.astro";
+import SectionLinks from "../../components/guides/SectionLinks.astro";
+import { GAME_MODES, SEPARATOR_ICON } from "../../data/guides";
+---
+
+<GuidePage
+  slug="game-modes"
+  title="Game Modes — Sheep Tag 2 Guides"
+  intro="Different ways to play! Each mode puts its own twist on the hunt, capture, and what comes next."
+>
+  <div class="modes">
+    {
+      GAME_MODES.map((mode) => (
+        <article class="mode">
+          <h2>{mode.title}</h2>
+          <GlyphFlow
+            steps={mode.flow}
+            separator={SEPARATOR_ICON[mode.separator]}
+            separatorSize={mode.separator === "swap" ? 42 : 26}
+          />
+          <p>{mode.body}</p>
+        </article>
+      ))
+    }
+  </div>
+
+  <SectionLinks slugs={["sheep", "wolves", "spirits"]} />
+</GuidePage>
+
+<style>
+  .modes {
+    display: grid;
+    gap: 1rem;
+  }
+  .mode {
+    padding: clamp(1rem, 2.5vw, 1.5rem);
+    background: var(--st-bg-2);
+    border: 1px solid var(--st-border);
+    border-radius: var(--st-radius-lg);
+    text-align: center;
+  }
+  .mode h2 {
+    font-size: clamp(1.3rem, 1.15rem + 0.8vw, 1.7rem);
+    color: var(--st-green-bright);
+  }
+  .mode p {
+    margin: 0.6rem auto 0;
+    max-width: 76ch;
+    color: var(--st-ink-muted);
+    text-wrap: pretty;
+  }
+</style>

@@ -1,0 +1,23 @@
+---
+import GuidePage from "../../components/guides/GuidePage.astro";
+import IconRows from "../../components/guides/IconRows.astro";
+import SectionLinks from "../../components/guides/SectionLinks.astro";
+import { BASIC_ABILITIES, BASIC_CONTROLS_BODY } from "../../data/guides";
+---
+
+<GuidePage slug="basic-abilities" title="Basic Abilities — Sheep Tag 2 Guides" intro={BASIC_CONTROLS_BODY}>
+  <div>
+    <IconRows entries={BASIC_ABILITIES} />
+    <p class="note" data-reveal>All hotkeys can be rebound in-game.</p>
+  </div>
+
+  <SectionLinks slugs={["spells", "resources-and-stats", "sheep"]} />
+</GuidePage>
+
+<style>
+  .note {
+    margin-top: 0.8rem;
+    font-size: 0.88rem;
+    color: var(--st-ink-subtle);
+  }
+</style>

@@ -35,11 +35,12 @@ export const DESCRIPTION = [
   "Born from the beloved Warcraft III mod that a devoted community has kept alive for more than two decades, Sheep Tag 2 is a from-the-ground-up standalone successor with five game modes, a built-in level editor, a free community terrain library, bot matches for solo practice, and a 17-track original soundtrack. It's free-to-play and never pay-to-win.",
 ];
 
+/** Paragraphs render as HTML, so a fact can carry the link that backs it up. */
 export const HISTORY = [
   "Sheep Tag's story spans a quarter-century of custom-game history. Its DNA traces back to the classic Cat and Mouse custom games of StarCraft, but it found its true home in the early 2000s as Sheep Tag, a fan-made mod for Warcraft III. Simple to learn and endlessly deep, the mod built a devoted competitive community that has kept it alive and actively played for over twenty years.",
   "Jeff, co-founder of Luna Wolf Studios, has been part of that story almost from the beginning. A Sheep Tag player since the earliest days of Warcraft III, he went on to help develop and maintain the original mod alongside devoted community members GosuSheep and Chakra. That experience made it clear that Sheep Tag deserved to grow beyond its humble beginnings as a mod, just as Dota 2 and Legion TD 2 grew beyond theirs.",
   "The first standalone prototypes date to August 2015. Production ramped up in 2017 when Quaternius, one of the most recognizable low-poly 3D artists working in games, came aboard to shape the game's bright, readable world. Illustrator Nik Hagialas joined in 2019, creating all of the game's concept art, cover art, and UI illustration, and in 2020 composers Baelex Metcalf, Lazerwolph, and M set to work on what would become the complete 17-track original soundtrack.",
-  "In November 2021 the community put its money where its heart is. The Sheep Tag 2 Kickstarter funded successfully, raising $10,072 from 65 backers. The closed beta launched in December 2022 with every backer reward delivered on time, exactly as promised. The game has been in continuous development ever since, on the road to a free-to-play launch on Steam for Windows, macOS, and Linux.",
+  `In November 2021 the community put its money where its heart is. The <a href="${LINKS.kickstarter}" target="_blank" rel="noopener">Sheep Tag 2 Kickstarter</a> funded successfully, raising $10,072 from 65 backers. The closed beta launched in December 2022 with every backer reward delivered on time, exactly as promised. The game has been in continuous development ever since, on the road to a free-to-play launch on Steam for Windows, macOS, and Linux.`,
   "Through it all, Sheep Tag 2 has remained a genuine solo project. Jeff is the game's sole core developer, its designer, programmer, and producer. He deliberately keeps the team small, bringing in hand-picked specialists exactly where their craft can take the game further than any one person could alone.",
 ];
 
@@ -90,7 +91,7 @@ export const ADDITIONAL_LINKS: Array<{ label: string; url: string; note: string 
   { label: "Kickstarter campaign", url: LINKS.kickstarter, note: "Funded November 2021, with the full campaign, updates, and rewards" },
   { label: "Discord", url: LINKS.discord, note: "The Sheep Tag 2 community server" },
   { label: "Terrain library", url: "https://www.sheeptag2.com/terrains", note: "Free community-made maps to browse and download" },
-  { label: "Farms guide", url: "https://www.sheeptag2.com/farms", note: "Illustrated guide to every farm in the game" },
+  { label: "Guides", url: "https://www.sheeptag2.com/guides", note: "Illustrated guides to the roles, spells, farms, upgrades, and game modes" },
   { label: "Luna Wolf Studios press kit", url: LWS_PRESSKIT, note: "Studio logos and company info" },
 ];
 

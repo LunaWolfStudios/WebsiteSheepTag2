@@ -1,0 +1,96 @@
+---
+/**
+ * A single piece of game art, centred in a square box so a mixed row (a 512px portrait
+ * beside a 34×48 gold coin) still lines up.
+ *
+ * `round` clips the box to a circle. The painted portraits are full-bleed busts with square
+ * corners, so inside a circle they fill it rather than sitting square in a round frame; every
+ * other icon is a glyph on transparent and is fitted as usual.
+ *
+ * The flat vector glyphs — arrows, swap, plus, flag, book, input hints — ship
+ * white-on-transparent and are tinted through the game's palette, so here they render as a CSS
+ * mask and take the surrounding ink colour.
+ */
+import { Image } from "astro:assets";
+import { art, FULL_BLEED, MASK_GLYPHS } from "../../lib/art";
+
+interface Props {
+  icon: string;
+  alt?: string;
+  size?: number;
+  /** Clip the box to a circle. Full-bleed art does this anyway; pass false to opt out. */
+  round?: boolean;
+  /** Hold the art back from the rim, in pixels. */
+  inset?: number;
+  class?: string;
+}
+
+const { icon, alt = "", size = 56, round: roundProp, inset = 0, class: className } = Astro.props;
+const img = art(icon);
+const masked = MASK_GLYPHS.has(icon);
+const fills = FULL_BLEED.has(icon);
+// A square bust cut off at the edges reads as broken art, so full-bleed pieces always go round.
+const round = roundProp ?? fills;
+
+// Never ask for more pixels than the source has — several of these glyphs are tiny by design.
+const target = fills ? size : size - inset * 2;
+const scale = Math.min(1, target / Math.max(img.width, img.height));
+const width = Math.max(1, Math.round(img.width * scale));
+const height = Math.max(1, Math.round(img.height * scale));
+---
+
+<span
+  class:list={["icon-box", { round, fills }, className]}
+  style={`--size: ${size}px; --inset: ${inset}px`}
+  role={alt ? "img" : undefined}
+  aria-label={alt || undefined}
+  aria-hidden={alt ? undefined : "true"}
+>
+  {
+    masked ? (
+      <span class="glyph" style={`--glyph: url(${JSON.stringify(img.src)})`} />
+    ) : (
+      <Image src={img} alt="" width={width} height={height} densities={[2]} loading="lazy" />
+    )
+  }
+</span>
+
+<style>
+  .icon-box {
+    display: grid;
+    place-items: center;
+    width: var(--size);
+    height: var(--size);
+    flex-shrink: 0;
+  }
+  .icon-box :global(img) {
+    max-width: calc(100% - var(--inset) * 2);
+    max-height: calc(100% - var(--inset) * 2);
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.45));
+  }
+  .icon-box.round {
+    border-radius: 50%;
+    overflow: hidden;
+    isolation: isolate;
+  }
+  /* Edge-to-edge art fills its box; clipped round, that's what keeps the corners off. */
+  .icon-box.fills :global(img) {
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    max-height: none;
+    object-fit: cover;
+    filter: none;
+  }
+  .glyph {
+    display: block;
+    width: calc(100% - var(--inset) * 2);
+    height: calc(100% - var(--inset) * 2);
+    background-color: currentColor;
+    -webkit-mask: var(--glyph) center / contain no-repeat;
+    mask: var(--glyph) center / contain no-repeat;
+  }
+</style>

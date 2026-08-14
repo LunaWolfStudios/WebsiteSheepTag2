@@ -1,0 +1,23 @@
+---
+/** A run of paragraphs, walking in one after the other. */
+interface Props {
+  body: string[];
+}
+
+const { body } = Astro.props;
+---
+
+<div class="prose">
+  {body.map((p, i) => <p data-reveal style={`--reveal-delay: ${i * 90}ms`}>{p}</p>)}
+</div>
+
+<style>
+  .prose p {
+    color: var(--st-ink-muted);
+    max-width: 82ch;
+    text-wrap: pretty;
+  }
+  .prose p + p {
+    margin-top: 0.85rem;
+  }
+</style>

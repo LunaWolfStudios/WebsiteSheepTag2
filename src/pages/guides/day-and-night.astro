@@ -1,0 +1,12 @@
+---
+import GuidePage from "../../components/guides/GuidePage.astro";
+import IconRows from "../../components/guides/IconRows.astro";
+import SectionLinks from "../../components/guides/SectionLinks.astro";
+import { DAY_NIGHT, DAY_NIGHT_BODY } from "../../data/guides";
+---
+
+<GuidePage slug="day-and-night" title="Day and Night — Sheep Tag 2 Guides" intro={DAY_NIGHT_BODY}>
+  <IconRows entries={DAY_NIGHT} />
+
+  <SectionLinks slugs={["wolves", "farms", "resources-and-stats"]} />
+</GuidePage>

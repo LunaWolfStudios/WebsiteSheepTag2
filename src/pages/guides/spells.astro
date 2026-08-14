@@ -1,0 +1,59 @@
+---
+import GuidePage from "../../components/guides/GuidePage.astro";
+import EntryGrid from "../../components/guides/EntryGrid.astro";
+import SectionLinks from "../../components/guides/SectionLinks.astro";
+import {
+  BASIC_ABILITIES,
+  MAGIC_FARM_SPELLS,
+  SHEEP_SPELLS,
+  SPIRIT_SPELLS,
+  WOLF_SPELLS,
+} from "../../data/guides";
+
+const standingOrders = BASIC_ABILITIES.filter((a) =>
+  ["Attack", "Stop", "Hold", "Patrol"].includes(a.name),
+);
+---
+
+<GuidePage
+  slug="spells"
+  title="Spells — Sheep Tag 2 Guides"
+  intro="The spells on each command card, side by side. A unit carries the basic commands it can use, plus the spells its own role brings."
+>
+  <EntryGrid
+    entries={standingOrders}
+    title="Basic Commands"
+    intro="The basic commands on the front of a command card. A Spirit has nothing to swing, so it carries these apart from Attack."
+    dense
+  />
+
+  <EntryGrid
+    entries={SHEEP_SPELLS}
+    title="Sheep"
+    icon="MultiboardIcon_Sheep.png"
+    intro="Find the flock, take back a farm you regret, and slip through a wall in your way."
+  />
+
+  <EntryGrid
+    entries={WOLF_SPELLS}
+    title="Wolves"
+    icon="MultiboardIcon_Wolf.png"
+    intro="Sight, traps, and ways through a cluster of farms. The pack's whole kit."
+  />
+
+  <EntryGrid
+    entries={SPIRIT_SPELLS}
+    title="Spirits"
+    icon="MultiboardIcon_Spirit.png"
+    intro="From inside the pen a Spirit can still bankroll and scout for its living allies."
+  />
+
+  <EntryGrid
+    entries={MAGIC_FARM_SPELLS}
+    title="Magic Farm"
+    icon="Icon_MagicFarm.png"
+    intro="The one farm that casts. A Magic Farm and its tiny cousin carry a command card of their own."
+  />
+
+  <SectionLinks slugs={["basic-abilities", "potions", "farms"]} />
+</GuidePage>

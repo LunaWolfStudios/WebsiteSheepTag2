@@ -1,0 +1,153 @@
+---
+/**
+ * A row of game glyphs joined by a separator — the Learn screen's way of telling a mode or a
+ * loop in pictures before it tells it in words. Steps can carry a title and caption (the round
+ * loop) or stand alone (the game mode flows), and any step can wear the VIP crown.
+ */
+import GameIcon from "./GameIcon.astro";
+
+export interface FlowStep {
+  icon: string;
+  alt: string;
+  crown?: string;
+  title?: string;
+  caption?: string;
+}
+
+interface Props {
+  steps: FlowStep[];
+  separator?: string;
+  /** Slightly larger for the swap glyph, which carries two arrows in the space of one. */
+  separatorSize?: number;
+  size?: number;
+  /** Milliseconds before the first beat pops, so a flow can land after its panel. */
+  delay?: number;
+  class?: string;
+}
+
+const {
+  steps,
+  separator = "UI_Icon_ArrowRight.png",
+  separatorSize = 26,
+  size = 62,
+  delay = 120,
+  class: className,
+} = Astro.props;
+
+const labelled = steps.some((s) => s.title);
+
+// Beat, arrow, beat: the flow tells itself in the order it happens, one domino at a time.
+const STEP_MS = 150;
+const beatDelay = (i: number) => delay + i * STEP_MS;
+const sepDelay = (i: number) => delay + i * STEP_MS - STEP_MS * 0.45;
+---
+
+<ol class:list={["flow", { labelled }, className]}>
+  {
+    steps.map((step, i) => (
+      <>
+        {i > 0 && (
+          <li class="flow-sep" aria-hidden="true" data-reveal="pop" style={`--reveal-delay: ${Math.round(sepDelay(i))}ms`}>
+            <GameIcon icon={separator} size={separatorSize} />
+          </li>
+        )}
+        <li class="flow-step" data-reveal="pop" style={`--reveal-delay: ${beatDelay(i)}ms`}>
+          <span class="flow-art">
+            <GameIcon icon={step.icon} alt={step.title ? "" : step.alt} size={size} />
+            {step.crown && <GameIcon icon={step.crown} size={size} class="crown" />}
+          </span>
+          {(step.title || step.caption) && (
+            <span class="flow-text">
+              {step.title && <span class="flow-title">{step.title}</span>}
+              {step.caption && <span class="flow-caption">{step.caption}</span>}
+            </span>
+          )}
+        </li>
+      </>
+    ))
+  }
+</ol>
+
+<style>
+  .flow {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 0.65rem 1.1rem;
+    list-style: none;
+    margin: 0;
+    padding: 0.4rem 0;
+  }
+  .flow-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.35rem;
+    text-align: center;
+  }
+  .flow.labelled .flow-step {
+    flex: 1 1 190px;
+    max-width: 290px;
+  }
+  .flow-art {
+    position: relative;
+    display: grid;
+    place-items: center;
+  }
+  /* The crown rides above the head, tilted the way the VIP wears it in game. Unity's +10°
+     about Z is counter-clockwise; CSS rotate is clockwise, so the sign flips. */
+  .flow-art :global(.crown) {
+    position: absolute;
+    inset: 0;
+    translate: 0 -34%;
+    rotate: -10deg;
+    pointer-events: none;
+  }
+  .flow-sep {
+    display: flex;
+    align-items: center;
+    color: var(--st-ink-subtle);
+  }
+  /* Line the arrow up with the art, not the middle of a captioned column. */
+  .flow.labelled .flow-sep {
+    align-self: flex-start;
+    margin-top: 1rem;
+  }
+  .flow-title {
+    display: block;
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 1.05rem;
+    line-height: 1.25;
+    color: var(--st-ink);
+  }
+  .flow-caption {
+    display: block;
+    font-size: 0.88rem;
+    line-height: 1.35;
+    color: var(--st-ink-muted);
+    text-wrap: balance;
+  }
+
+  /* Stacked, each beat reads as a row and the arrow turns to point at the next one. */
+  @media (max-width: 560px) {
+    .flow.labelled {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 0.35rem;
+    }
+    .flow.labelled .flow-step {
+      flex-direction: row;
+      align-items: center;
+      gap: 0.85rem;
+      text-align: left;
+      max-width: none;
+    }
+    .flow.labelled .flow-sep {
+      align-self: center;
+      margin: 0;
+      rotate: 90deg;
+    }
+  }
+</style>

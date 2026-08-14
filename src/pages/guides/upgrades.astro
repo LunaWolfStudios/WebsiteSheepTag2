@@ -1,0 +1,16 @@
+---
+import GuidePage from "../../components/guides/GuidePage.astro";
+import EntryGrid from "../../components/guides/EntryGrid.astro";
+import SectionLinks from "../../components/guides/SectionLinks.astro";
+import { UPGRADES } from "../../data/guides";
+---
+
+<GuidePage
+  slug="upgrades"
+  title="Upgrades — Sheep Tag 2 Guides"
+  intro="A Wolf gets stronger over the round. Gold spent here does not wear off, so an early buy compounds for the rest of the hunt."
+>
+  <EntryGrid entries={UPGRADES} dense />
+
+  <SectionLinks slugs={["potions", "wolves", "resources-and-stats"]} />
+</GuidePage>

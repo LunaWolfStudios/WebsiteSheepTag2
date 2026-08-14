@@ -1,0 +1,12 @@
+---
+import GuidePage from "../../components/guides/GuidePage.astro";
+import IconRows from "../../components/guides/IconRows.astro";
+import SectionLinks from "../../components/guides/SectionLinks.astro";
+import { RESOURCES_BODY, STATS } from "../../data/guides";
+---
+
+<GuidePage slug="resources-and-stats" title="Resources and Stats — Sheep Tag 2 Guides" intro={RESOURCES_BODY}>
+  <IconRows entries={STATS} />
+
+  <SectionLinks slugs={["upgrades", "day-and-night", "farms"]} />
+</GuidePage>

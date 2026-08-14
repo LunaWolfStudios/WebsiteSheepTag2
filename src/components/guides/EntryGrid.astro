@@ -1,0 +1,176 @@
+---
+/**
+ * A group of catalogue entries — spells, farms, potions, upgrades.
+ *
+ * In game these live on a command card: a grid of hotkeyed cells with one detail panel
+ * underneath. The web has room to read, so every entry wears its own icon and tooltip text
+ * at once and the hotkeys are left behind.
+ */
+import GameIcon from "./GameIcon.astro";
+import type { Entry } from "../../data/guides";
+
+interface Props {
+  entries: Entry[];
+  /** Icon beside the group heading, usually the matching HUD tab glyph. */
+  icon?: string;
+  title?: string;
+  intro?: string;
+  id?: string;
+  /** Roomier cards for the short lists; tighter ones when there are a dozen-plus. */
+  dense?: boolean;
+}
+
+const { entries, icon, title, intro, id, dense = false } = Astro.props;
+
+// Cards deal themselves out in sequence; past a dozen the wait stops reading as a stagger.
+const cardDelay = (i: number) => 90 + Math.min(i, 11) * 55;
+---
+
+<section class="group" id={id}>
+  {
+    title && (
+      <header class="group-head" data-reveal>
+        <h2>
+          {icon && <GameIcon icon={icon} size={30} class="group-glyph" />}
+          {title}
+          <span class="count">{entries.length}</span>
+        </h2>
+        {intro && <p class="group-intro">{intro}</p>}
+      </header>
+    )
+  }
+  <div class:list={["entry-grid", { dense }]}>
+    {
+      entries.map((entry, i) => (
+        <article class="entry" data-reveal style={`--reveal-delay: ${cardDelay(i)}ms`}>
+          <span class="entry-cell">
+            {/* Decorative: the heading right beside it already names the entry. */}
+            <GameIcon icon={entry.icon} size={64} />
+          </span>
+          <div class="entry-body">
+            <h3>{entry.name}</h3>
+            {entry.from && (
+              <p class="path">
+                <span class="path-from">{entry.from.join(", ")}</span>
+                <span class="path-arrow" aria-hidden="true">
+                  <GameIcon icon="UI_Icon_ArrowRight.png" size={16} />
+                </span>
+                <span class="path-to">{entry.name}</span>
+              </p>
+            )}
+            <p class="desc" set:html={entry.description} />
+            {entry.upgradesTo && (
+              <p class="upgrades">Upgrades to {entry.upgradesTo.join(", ")}.</p>
+            )}
+          </div>
+        </article>
+      ))
+    }
+  </div>
+</section>
+
+<style>
+  .group-head {
+    margin-bottom: 1rem;
+  }
+  .group-head h2 {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    font-size: clamp(1.3rem, 1.1rem + 1vw, 1.7rem);
+    color: var(--st-green-bright);
+  }
+  .group-head h2 :global(.group-glyph) {
+    color: var(--st-green-bright);
+  }
+  .count {
+    font-family: var(--font-body);
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--st-ink-subtle);
+  }
+  .group-intro {
+    margin-top: 0.3rem;
+    color: var(--st-ink-muted);
+    max-width: 80ch;
+    text-wrap: pretty;
+  }
+
+  .entry-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
+    gap: 0.9rem;
+  }
+  .entry-grid.dense {
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+  }
+
+  .entry {
+    display: grid;
+    grid-template-columns: 88px minmax(0, 1fr);
+    gap: 1rem;
+    align-items: start;
+    padding: 1rem;
+    background: var(--st-surface);
+    border: 1px solid var(--st-border);
+    border-radius: var(--st-radius-lg);
+    box-shadow: var(--st-shadow);
+    transition: border-color 0.15s ease, transform 0.15s ease;
+  }
+  .entry:hover {
+    border-color: color-mix(in srgb, var(--st-green) 55%, var(--st-border));
+    transform: translateY(-2px);
+  }
+  /* The command card's cell, minus the hotkey in the corner. */
+  .entry-cell {
+    display: grid;
+    place-items: center;
+    width: 88px;
+    height: 88px;
+    background: radial-gradient(circle at 50% 40%, var(--st-bg-2), var(--st-surface));
+    border: 1px solid var(--st-border);
+    border-radius: 14px;
+  }
+  .entry-body h3 {
+    font-size: 1.12rem;
+    margin-bottom: 0.25rem;
+  }
+  .desc {
+    color: var(--st-ink-muted);
+    font-size: 0.92rem;
+    line-height: 1.5;
+  }
+  .path {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    margin-bottom: 0.35rem;
+    font-family: var(--font-display);
+    font-size: 0.85rem;
+    color: var(--st-ink-subtle);
+  }
+  .path-arrow {
+    display: inline-flex;
+    color: var(--st-ink-subtle);
+  }
+  .path-to {
+    color: var(--st-ink);
+  }
+  .upgrades {
+    margin-top: 0.45rem;
+    font-size: 0.85rem;
+    color: var(--st-sky);
+  }
+
+  @media (max-width: 460px) {
+    .entry {
+      grid-template-columns: 64px minmax(0, 1fr);
+      gap: 0.8rem;
+    }
+    .entry-cell {
+      width: 64px;
+      height: 64px;
+    }
+  }
+</style>

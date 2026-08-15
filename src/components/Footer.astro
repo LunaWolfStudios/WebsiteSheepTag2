@@ -1,12 +1,12 @@
 ---
-import { LINKS } from "../data/links";
+import { LINKS, withUtm } from "../data/links";
 import Icon from "./Icon.astro";
 
 const year = new Date().getFullYear();
 
 const socials: Array<{ href: string; label: string; icon?: string; img?: string }> = [
   { href: "/", label: "Homepage", icon: "home" },
-  { href: LINKS.steam, label: "Steam", icon: "steam" },
+  { href: withUtm(LINKS.steam, "footer"), label: "Steam", icon: "steam" },
   { href: LINKS.kickstarter, label: "Kickstarter", icon: "kickstarter" },
   { href: LINKS.x, label: "X (Twitter)", icon: "x" },
   { href: LINKS.facebook, label: "Facebook", icon: "facebook" },

@@ -1,7 +1,7 @@
 ---
 import { Image } from "astro:assets";
 import farmIcon from "../../icons/SheepTag2_Icon_96x96.png";
-import { LINKS } from "../data/links";
+import { LINKS, withUtm, type LinkPlacement } from "../data/links";
 import { NAV_SECTIONS, SECTION_GROUPS, sectionHref } from "../data/guides";
 import Icon from "./Icon.astro";
 
@@ -16,8 +16,9 @@ const internal = [
 ];
 // Kickstarter funded back in 2021 — it lives on in the footer socials and the press kit
 // rather than taking a slot in the primary nav.
-const external = [
-  { href: LINKS.soundtrack, label: "Soundtrack" },
+// Both navs render this set, so the placement tag is applied per nav rather than baked in.
+const external = (placement: LinkPlacement) => [
+  { href: withUtm(LINKS.soundtrack, placement), label: "Soundtrack" },
   { href: LINKS.discord, label: "Discord" },
 ];
 
@@ -82,7 +83,7 @@ const guideGroups = SECTION_GROUPS.map((group) => ({
       </div>
 
       {
-        external.map((l) => (
+        external("header").map((l) => (
           <a href={l.href} class="nav-link" target="_blank" rel="noopener">
             {l.label}
             <Icon name="external" size={14} class="ext-ico" />
@@ -92,7 +93,12 @@ const guideGroups = SECTION_GROUPS.map((group) => ({
     </nav>
 
     <div class="header-actions">
-      <a href={LINKS.wishlist} class="btn btn--primary btn--sm wishlist" target="_blank" rel="noopener">
+      <a
+        href={withUtm(LINKS.wishlist, "header")}
+        class="btn btn--primary btn--sm wishlist"
+        target="_blank"
+        rel="noopener"
+      >
         <Icon name="steam" size={16} /> Wishlist
       </a>
       <button
@@ -125,14 +131,19 @@ const guideGroups = SECTION_GROUPS.map((group) => ({
         }
       </ul>
       {
-        external.map((l) => (
+        external("nav_mobile").map((l) => (
           <a href={l.href} class="mobile-link" target="_blank" rel="noopener">
             {l.label}
             <Icon name="external" size={16} />
           </a>
         ))
       }
-      <a href={LINKS.wishlist} class="btn btn--primary mobile-wishlist" target="_blank" rel="noopener">
+      <a
+        href={withUtm(LINKS.wishlist, "nav_mobile")}
+        class="btn btn--primary mobile-wishlist"
+        target="_blank"
+        rel="noopener"
+      >
         <Icon name="steam" size={16} /> Wishlist on Steam
       </a>
     </div>

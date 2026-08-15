@@ -5,7 +5,7 @@
  *
  * Facts sourced from the Steam page, the Kickstarter campaign, and Jeff.
  */
-import { LINKS } from "./links";
+import { LINKS, withUtm } from "./links";
 
 export const PRESS_EMAIL = "support@lunawolfstudios.com";
 
@@ -15,7 +15,7 @@ export const LWS_PRESSKIT = "https://lunawolfstudios.com/presskit";
 export const FACTSHEET: Array<{ label: string; value: string; href?: string }> = [
   { label: "Developer", value: "Luna Wolf Studios (Delaware, USA)" },
   { label: "Release date", value: "TBA (in closed beta)" },
-  { label: "Platforms", value: "Steam (Windows, macOS & Linux)", href: LINKS.steam },
+  { label: "Platforms", value: "Steam (Windows, macOS & Linux)", href: withUtm(LINKS.steam, "presskit") },
   { label: "Price", value: "Free-to-play, never pay-to-win" },
   { label: "Genre", value: "Asymmetric multiplayer strategy & survival" },
   { label: "Players", value: "Up to 16 online, or solo vs. bots" },
@@ -86,8 +86,8 @@ export const MONETIZATION =
   "Luna Wolf Studios grants permission for the contents of Sheep Tag 2 to be published through video broadcasting services and monetized. Let's Plays, streams, reviews, and similar content are welcome and encouraged on platforms such as YouTube and Twitch. We'd love it if you linked to sheeptag2.com alongside your content.";
 
 export const ADDITIONAL_LINKS: Array<{ label: string; url: string; note: string }> = [
-  { label: "Steam page", url: LINKS.steam, note: "Wishlist Sheep Tag 2 on Steam" },
-  { label: "Original Soundtrack", url: LINKS.soundtrack, note: "The 17-track OST on Steam" },
+  { label: "Steam page", url: withUtm(LINKS.steam, "presskit"), note: "Wishlist Sheep Tag 2 on Steam" },
+  { label: "Original Soundtrack", url: withUtm(LINKS.soundtrack, "presskit"), note: "The 17-track OST on Steam" },
   { label: "Kickstarter campaign", url: LINKS.kickstarter, note: "Funded November 2021, with the full campaign, updates, and rewards" },
   { label: "Discord", url: LINKS.discord, note: "The Sheep Tag 2 community server" },
   { label: "Terrain library", url: "https://www.sheeptag2.com/terrains", note: "Free community-made maps to browse and download" },

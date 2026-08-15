@@ -3,8 +3,6 @@ import GuidePage from "../../components/guides/GuidePage.astro";
 import Prose from "../../components/guides/Prose.astro";
 import EntryGrid from "../../components/guides/EntryGrid.astro";
 import SectionLinks from "../../components/guides/SectionLinks.astro";
-import Panel from "../../components/guides/Panel.astro";
-import GlyphFlow from "../../components/guides/GlyphFlow.astro";
 import { BASIC_ABILITIES, PEN_BODY, SPIRIT_SPELLS } from "../../data/guides";
 
 // A Spirit answers to every basic command but Attack — it has nothing to swing.
@@ -12,14 +10,6 @@ const shared = BASIC_ABILITIES.filter((a) => ["Stop", "Hold", "Patrol"].includes
 
 // The game's own opening is the deck, so the page doesn't say the same thing twice.
 const [opening, ...rest] = PEN_BODY;
-
-// From the capture to the pen and back out again: one attack from a living ally is the rescue.
-const rescue = [
-  { icon: "MultiboardIcon_KillCapture1.png", alt: "Captured by a Wolf" },
-  { icon: "MultiboardIcon_KillCapture2.png", alt: "Held in the pen as a Spirit" },
-  { icon: "MultiboardIcon_SavesRevive.png", alt: "A living Sheep attacks it" },
-  { icon: "MultiboardIcon_Sheep.png", alt: "Back in the round" },
-];
 ---
 
 <GuidePage
@@ -30,10 +20,6 @@ const rescue = [
   bodyIntro
 >
   <Prose body={rest} />
-
-  <Panel title="How a save works" center>
-    <GlyphFlow steps={rescue} size={56} />
-  </Panel>
 
   <EntryGrid
     entries={SPIRIT_SPELLS}

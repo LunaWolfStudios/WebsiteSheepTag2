@@ -3,21 +3,12 @@ import GuidePage from "../../components/guides/GuidePage.astro";
 import Prose from "../../components/guides/Prose.astro";
 import EntryGrid from "../../components/guides/EntryGrid.astro";
 import SectionLinks from "../../components/guides/SectionLinks.astro";
-import Panel from "../../components/guides/Panel.astro";
-import GlyphFlow from "../../components/guides/GlyphFlow.astro";
 import { BASIC_ABILITIES, PACK_BODY, WOLF_SPELLS } from "../../data/guides";
 
 const shared = BASIC_ABILITIES.filter((a) => ["Attack", "Stop", "Hold", "Patrol"].includes(a.name));
 
 // The game's own opening is the deck, so the page doesn't say the same thing twice.
 const [opening, ...rest] = PACK_BODY;
-
-// The hunt in three glyphs: corner the Sheep, capture it, and it goes to the pen as a Spirit.
-const hunt = [
-  { icon: "MultiboardIcon_Wolf.png", alt: "A Wolf corners a Sheep" },
-  { icon: "MultiboardIcon_KillCapture1.png", alt: "The Sheep is captured" },
-  { icon: "MultiboardIcon_Spirit.png", alt: "It returns as a Spirit in the pen" },
-];
 ---
 
 <GuidePage
@@ -28,10 +19,6 @@ const hunt = [
   bodyIntro
 >
   <Prose body={rest} />
-
-  <Panel title="The hunt" center>
-    <GlyphFlow steps={hunt} size={58} />
-  </Panel>
 
   <EntryGrid
     entries={WOLF_SPELLS}

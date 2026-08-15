@@ -3,8 +3,6 @@ import GuidePage from "../../components/guides/GuidePage.astro";
 import Prose from "../../components/guides/Prose.astro";
 import EntryGrid from "../../components/guides/EntryGrid.astro";
 import SectionLinks from "../../components/guides/SectionLinks.astro";
-import Panel from "../../components/guides/Panel.astro";
-import GlyphFlow from "../../components/guides/GlyphFlow.astro";
 import { BASIC_ABILITIES, FLOCK_BODY, SHEEP_SPELLS } from "../../data/guides";
 
 // A Sheep's own spells sit on the card beside the basic commands.
@@ -12,15 +10,6 @@ const shared = BASIC_ABILITIES.filter((a) => ["Attack", "Stop", "Hold", "Patrol"
 
 // The game's own opening is the deck, so the page doesn't say the same thing twice.
 const [opening, ...rest] = FLOCK_BODY;
-
-// Caught, and back again: the flock's half of the round loop.
-const saveLoop = [
-  { icon: "MultiboardIcon_Sheep.png", alt: "A living Sheep" },
-  { icon: "MultiboardIcon_KillCapture1.png", alt: "Captured by a Wolf" },
-  { icon: "MultiboardIcon_Spirit.png", alt: "A Spirit waiting in the pen" },
-  { icon: "MultiboardIcon_SavesRevive.png", alt: "Freed by an ally's attack" },
-  { icon: "MultiboardIcon_Sheep.png", alt: "Back in the round" },
-];
 ---
 
 <GuidePage
@@ -31,10 +20,6 @@ const saveLoop = [
   bodyIntro
 >
   <Prose body={rest} />
-
-  <Panel title="Caught isn't out" center>
-    <GlyphFlow steps={saveLoop} size={52} />
-  </Panel>
 
   <EntryGrid
     entries={SHEEP_SPELLS}

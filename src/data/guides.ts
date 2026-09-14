@@ -577,8 +577,6 @@ export const UPGRADE_TREE: Array<{ root: string; chains: string[][] }> = [
 
 export interface FlowGlyph {
   icon: string;
-  /** Overlaid above the head, the way the VIP wears its crown. */
-  crown?: string;
   alt: string;
 }
 
@@ -626,8 +624,8 @@ export const GAME_MODES: GameMode[] = [
     body: "One crowned Sheep is the VIP. The flock wins by keeping the VIP alive until the timer runs out, while losing the VIP immediately ends the round.",
     flow: [
       { icon: "MultiboardIcon_Wolf.png", alt: "Wolf" },
-      { icon: "MultiboardIcon_Sheep.png", crown: "MultiboardIcon_VIP.png", alt: "The VIP Sheep" },
-      { icon: "MultiboardIcon_Wolf.png", crown: "MultiboardIcon_VIP.png", alt: "The Wolf that takes the VIP" },
+      { icon: "MultiboardIcon_SheepVIP.png", alt: "The VIP Sheep" },
+      { icon: "MultiboardIcon_WolfVIP.png", alt: "The Wolf that takes the VIP" },
     ],
     separator: "arrow",
   },

@@ -2,14 +2,13 @@
 /**
  * A row of game glyphs joined by a separator — the Learn screen's way of telling a mode or a
  * loop in pictures before it tells it in words. Steps can carry a title and caption (the round
- * loop) or stand alone (the game mode flows), and any step can wear the VIP crown.
+ * loop) or stand alone (the game mode flows).
  */
 import GameIcon from "./GameIcon.astro";
 
 export interface FlowStep {
   icon: string;
   alt: string;
-  crown?: string;
   title?: string;
   caption?: string;
 }
@@ -54,7 +53,6 @@ const sepDelay = (i: number) => delay + i * STEP_MS - STEP_MS * 0.45;
         <li class="flow-step" data-reveal="pop" style={`--reveal-delay: ${beatDelay(i)}ms`}>
           <span class="flow-art">
             <GameIcon icon={step.icon} alt={step.title ? "" : step.alt} size={size} />
-            {step.crown && <GameIcon icon={step.crown} size={size} class="crown" />}
           </span>
           {(step.title || step.caption) && (
             <span class="flow-text">
@@ -91,18 +89,8 @@ const sepDelay = (i: number) => delay + i * STEP_MS - STEP_MS * 0.45;
     max-width: 290px;
   }
   .flow-art {
-    position: relative;
     display: grid;
     place-items: center;
-  }
-  /* The crown rides above the head, tilted the way the VIP wears it in game. Unity's +10°
-     about Z is counter-clockwise; CSS rotate is clockwise, so the sign flips. */
-  .flow-art :global(.crown) {
-    position: absolute;
-    inset: 0;
-    translate: 0 -34%;
-    rotate: -10deg;
-    pointer-events: none;
   }
   .flow-sep {
     display: flex;

@@ -11,7 +11,7 @@ export const SITE = {
   description:
     "The classic cat-and-mouse game! It's Sheep vs. Wolves in this unique blend of real-time strategy and survival. Party online with friends or play it solo against bots!",
   fullDescription:
-    "The classic cat and mouse game! It's Sheep against Wolves in this unique blend of real-time strategy and survival. Sheep Tag 2 will put your reflexes to the test in this thrilling and competitive experience bound to keep you on the edge of your seat. Party with up to 16 players online.",
+    "The classic cat and mouse game! It's Sheep against Wolves in this unique blend of real-time strategy and survival. Sheep Tag 2 will put your reflexes to the test in this thrilling and competitive experience bound to keep you on the edge of your seat. Party with up to 32 players online.",
 
   ogImage: "/og-image.png", // 1200x630, with logo
 } as const;

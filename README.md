@@ -3,7 +3,7 @@
 </p>
 
 <p align="center"><b>The classic cat-and-mouse game. Sheep vs. Wolves.</b><br>
-A blend of real-time strategy and survival for up to 16 players online.</p>
+A blend of real-time strategy and survival for up to 32 players online.</p>
 
 <p align="center">
   <a href="https://store.steampowered.com/app/537680/Sheep_Tag_2"><b>Wishlist on Steam</b></a> &nbsp;|&nbsp;

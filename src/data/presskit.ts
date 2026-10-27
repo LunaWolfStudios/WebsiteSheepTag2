@@ -18,7 +18,7 @@ export const FACTSHEET: Array<{ label: string; value: string; href?: string }> =
   { label: "Platforms", value: "Steam (Windows, macOS & Linux)", href: withUtm(LINKS.steam, "presskit") },
   { label: "Price", value: "Free-to-play, never pay-to-win" },
   { label: "Genre", value: "Asymmetric multiplayer strategy & survival" },
-  { label: "Players", value: "Up to 16 online, or solo vs. bots" },
+  { label: "Players", value: "Up to 32 online, or solo vs. bots" },
   { label: "Engine", value: "Unity" },
   { label: "Languages", value: "English (more planned)" },
   { label: "Website", value: "sheeptag2.com", href: LINKS.homepage },
@@ -27,7 +27,7 @@ export const FACTSHEET: Array<{ label: string; value: string; href?: string }> =
 
 /** One-line pitch, then the long-form description. */
 export const PITCH =
-  "The classic cat-and-mouse game! It's Sheep vs. Wolves in a unique blend of real-time strategy and survival. Party with up to 16 players online.";
+  "The classic cat-and-mouse game! It's Sheep vs. Wolves in a unique blend of real-time strategy and survival. Party with up to 32 players online.";
 
 export const DESCRIPTION = [
   "Sheep Tag 2 is the classic cat-and-mouse game reborn as an asymmetric, free-to-play multiplayer showdown where quick-thinking Sheep race to build sprawling mazes of farms while a coordinated pack of Wolves tears through every wall between them and their prey. Survive the clock as the flock, or capture every last Sheep as the pack. Either way, your reflexes are in for a workout.",
@@ -56,7 +56,7 @@ export const TIMELINE: Array<{ when: string; what: string }> = [
 ];
 
 export const FEATURES = [
-  "Asymmetric online multiplayer for up to 16 players, one flock of Sheep against a pack of Wolves.",
+  "Asymmetric online multiplayer for up to 32 players, one flock of Sheep against a pack of Wolves.",
   "Build to survive: raise mazes from 20+ farm types, from the humble Straw Farm to Illusion and Invisible trickery.",
   "Hunt as a pack: Wolf abilities like Pack Wolves, Lunar Strike, Phase Shift, and Snare Trap, plus gold, items, and upgrades.",
   "Dramatic comebacks: captured Sheep become Spirits in the central Pen, and every rescue can swing the match.",

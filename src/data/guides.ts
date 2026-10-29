@@ -506,7 +506,7 @@ export const UPGRADES: Entry[] = [
 /* Farms                                                                       */
 /* -------------------------------------------------------------------------- */
 
-export const UPGRADED_FARMS_INTRO = "To upgrade a Farm select it and choose an available upgrade.";
+export const UPGRADED_FARMS_INTRO = "To upgrade a farm, select it and choose an available upgrade.";
 
 /**
  * Farm structure only. Descriptions live in farms/descriptions.tsv and reach the page through

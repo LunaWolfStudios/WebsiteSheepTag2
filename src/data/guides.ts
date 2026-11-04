@@ -260,7 +260,7 @@ export const STATS: Entry[] = [
   {
     name: "Health",
     description:
-      "How much damage a unit takes before it falls. Farms carry their own health, so a Wolf has to break one down to get through it.",
+      "How much damage a unit takes before it falls. Farms carry their own health, so a Wolf has to destroy one to get through it.",
     icon: "Icon_HealthCapacityStat.png",
   },
   {

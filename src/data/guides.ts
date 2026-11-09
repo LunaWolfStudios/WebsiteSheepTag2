@@ -339,7 +339,7 @@ export const SHEEP_SPELLS: Entry[] = [
   {
     name: "Fortify",
     description:
-      "Grants extra armor to nearby farms for a short time. Casting it again refreshes the time but does not add more armor.",
+      "Grants extra armor to nearby farms for a short time. Does not stack with itself.",
     icon: "Icon_Fortify.png",
   },
   {

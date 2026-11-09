@@ -332,6 +332,17 @@ export const SHEEP_SPELLS: Entry[] = [
     icon: "Icon_RemoveLastFarm.png",
   },
   {
+    name: "Clairvoyance",
+    description: "Grants this unit true sight for a short time, revealing invisible units within its sight range.",
+    icon: "Icon_Clairvoyance.png",
+  },
+  {
+    name: "Fortify",
+    description:
+      "Grants extra armor to nearby farms for a short time. Casting it again refreshes the time but does not add more armor.",
+    icon: "Icon_Fortify.png",
+  },
+  {
     name: "Translocate",
     description:
       "Teleports this unit forward, passing through solid objects such as farms and walls within a limited range.",

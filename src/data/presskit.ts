@@ -70,7 +70,8 @@ export const FEATURES = [
 ];
 
 export const VIDEOS: Array<{ id: string; title: string }> = [
-  { id: LINKS.trailerId, title: "Sheep Tag 2 - Cinematic Teaser Trailer" },
+  { id: LINKS.trailerId, title: "Sheep Tag 2 - Official Gameplay Trailer (Early Access 2027)" },
+  { id: LINKS.cinematicTrailerId, title: "Sheep Tag 2 - Cinematic Teaser Trailer" },
 ];
 
 export const COVERAGE: Array<{ outlet: string; title: string; url: string; note: string }> = [

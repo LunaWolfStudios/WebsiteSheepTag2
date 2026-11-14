@@ -403,9 +403,11 @@ import Icon from "./Icon.astro";
         e.preventDefault();
         // Single source of truth is the data file, handed over on the link. A video named
         // as next goes in as the player's playlist, which YouTube starts once the first ends.
+        // The playlist has to name this video too: given only the next one, the player
+        // drops the video in the URL and plays the playlist alone.
         const { videoId = "", videoNext } = link.dataset;
         const query = new URLSearchParams({ autoplay: "1", rel: "0" });
-        if (videoNext) query.set("playlist", videoNext);
+        if (videoNext) query.set("playlist", `${videoId},${videoNext}`);
         const player = document.createElement("iframe");
         player.src = `https://www.youtube-nocookie.com/embed/${encodeURIComponent(videoId)}?${query}`;
         player.title = "Sheep Tag 2 video";

@@ -9,9 +9,9 @@ import Icon from "../components/Icon.astro";
 import background from "../../logos/st2_background_1920x1080.png";
 
 const routes = [
-  { href: "/terrains", label: "Community Terrains", icon: "grid", blurb: "Browse and download community maps." },
+  { href: "/terrains", label: "Community Terrains", icon: "grid", blurb: "Browse and download community terrains." },
   { href: "/farms", label: "Farms", icon: "home", blurb: "Every farm the Sheep can build." },
-  { href: "/submit", label: "Share a Terrain", icon: "upload", blurb: "Send us a map you made." },
+  { href: "/submit", label: "Share a Terrain", icon: "upload", blurb: "Send us a terrain you made." },
 ];
 ---
 
@@ -25,13 +25,13 @@ const routes = [
     <div class="lost-scrim" aria-hidden="true"></div>
 
     <div class="wrap lost-content">
-      <span class="visually-hidden">Error 404 — page not found.</span>
+      <span class="visually-hidden">Error 404. Page not found.</span>
       <p class="lost-code" aria-hidden="true">
         <span>4</span><span class="lost-sheep">🐑</span><span>4</span>
       </p>
       <h1>This sheep wandered off.</h1>
       <p class="lost-sub">
-        There's nothing at <code class="lost-path" id="lost-path">this address</code> &mdash; the page
+        There's nothing at <code class="lost-path" id="lost-path">this address</code>. The page
         moved, the link went stale, or a Wolf got to it first. Best head back inside the fence.
       </p>
 

@@ -52,7 +52,7 @@ export const SECTIONS: Section[] = [
   {
     slug: "basic-abilities",
     title: "Basic Abilities",
-    blurb: "The commands most units share, from moving to queueing a whole plan.",
+    blurb: "The commands most units share, from moving to patrolling.",
     icon: "UI_Icon_MouseRight.png",
     group: "Start here",
   },
@@ -66,14 +66,14 @@ export const SECTIONS: Section[] = [
   {
     slug: "day-and-night",
     title: "Day and Night",
-    blurb: "The round timer turns from rooster to owl, and the field changes with it.",
+    blurb: "How day and night change how far each side can see.",
     icon: "TimerPanel_OwlIcon.png",
     group: "Start here",
   },
   {
     slug: "game-modes",
     title: "Game Modes",
-    blurb: "Classic, Switch, Vamp, VIP and Practice. Who hunts whom, and what a capture makes them.",
+    blurb: "Classic, Switch, Vamp, VIP and Practice, and how capture works in each.",
     icon: "UI_Icon_Flag.png",
     group: "Start here",
   },
@@ -90,7 +90,7 @@ export const SECTIONS: Section[] = [
     slug: "wolves",
     title: "Wolves",
     kicker: "The Pack",
-    blurb: "Corner the Sheep, and grow stronger the longer the round runs.",
+    blurb: "Corner the Sheep and get stronger as the round goes on.",
     icon: "MultiboardIcon_Wolf.png",
     headerIcon: "PortraitIcon_Werewolf.png",
     group: "Roles",
@@ -99,7 +99,7 @@ export const SECTIONS: Section[] = [
     slug: "spirits",
     title: "Spirits",
     kicker: "The Pen",
-    blurb: "Caught is a change of role, not the end of the round.",
+    blurb: "Caught Sheep become Spirits and wait in the pen to be saved.",
     icon: "MultiboardIcon_Spirit.png",
     group: "Roles",
   },
@@ -121,7 +121,7 @@ export const SECTIONS: Section[] = [
   {
     slug: "potions",
     title: "Potions",
-    blurb: "Brews a Wolf buys with gold for the moment it needs an edge.",
+    blurb: "Potions a Wolf buys with gold, and what each one does.",
     icon: "AbilityPanel_ShopIcon_Pressed.png",
     group: "Reference",
   },
@@ -138,7 +138,7 @@ export const SECTIONS: Section[] = [
 export const OVERVIEW: Section = {
   slug: "",
   title: "Overview",
-  blurb: "How a round plays, the three roles, and the way into the other sections.",
+  blurb: "How a round plays, the three roles, and links to every section.",
   icon: "UI_Icon_Book.png",
   group: "Start here",
 };
@@ -205,7 +205,7 @@ export const PACK_BODY = [
 export const PEN_HEADING = "The Pen";
 export const PEN_BODY = [
   "Capture isn't the end of the round, it's a change of role. A captured Sheep loses every farm it built and returns as a Spirit inside the pen, waiting to be saved.",
-  "A Spirit is saved when a living Sheep attacks it. One attack sets the teammate free, rewards the saver with Gold, and brings a Sheep back into play. Spirits drift slowly, so waiting at the edge of the pen nearest your rescuers makes every save faster.",
+  "A Spirit is saved when a living Sheep attacks it. One attack sets the teammate free, rewards the saver with Gold, and brings a Sheep back into play. Every Spirit a Sheep frees without being caught also raises the Mana it can hold, and a capture takes all of that back. Spirits drift slowly, so waiting at the edge of the pen nearest your rescuers makes every save faster.",
   "Spirits can still help the flock by sharing Gold with living allies, calling out Wolf movement, and staying alert for a chance to be saved by a teammate. In Switch and Vamp modes, capture works differently and there are no Spirits.",
 ];
 
@@ -219,7 +219,7 @@ export const BASIC_CONTROLS_BODY = "Most units share the same basic commands.";
 export const BASIC_ABILITIES: Entry[] = [
   {
     name: "Move",
-    description: "Right-click anywhere and your unit finds its way there. It works on the minimap too.",
+    description: "Right-click anywhere and your unit walks there. It works on the minimap too.",
     icon: "UI_Icon_MouseRight.png",
   },
   { name: "Attack", description: "Orders this unit to attack a given area or target.", icon: "Icon_Attack.png" },
@@ -233,12 +233,6 @@ export const BASIC_ABILITIES: Entry[] = [
     name: "Patrol",
     description: "Orders this unit to move back and forth between selected points, attacking enemies encountered.",
     icon: "Icon_Patrol.png",
-  },
-  {
-    name: "Queue",
-    // The game names the binding here; on the web the key is left to the player's own settings.
-    description: "Hold the queue key while ordering to chain moves, builds, and attacks into one plan.",
-    icon: "UI_Icon_InputKeyboard.png",
   },
 ];
 
@@ -254,41 +248,40 @@ export const STATS: Entry[] = [
   {
     name: "Gold",
     description:
-      "The currency of the round. It trickles in while you are alive and buys farms for the flock or upgrades and potions for the pack.",
+      "The currency of the round. It comes in while you are alive and buys farms for the flock or upgrades and potions for the pack.",
     icon: "Icon_Gold.png",
   },
   {
     name: "Health",
     description:
-      "How much damage a unit takes before it falls. Farms carry their own health, so a Wolf has to destroy one to get through it.",
+      "How much damage a unit takes before it falls. Farms have health too, so a Wolf has to destroy one to get through.",
     icon: "Icon_HealthCapacityStat.png",
   },
   {
     name: "Mana",
     description:
-      "The fuel for spells. It refills on its own, so spending it all at once means waiting to cast again.",
+      "What spells cost to cast. It refills on its own, so spending it all means waiting before you can cast again.",
     icon: "Icon_ManaCapacityStat.png",
   },
   {
     name: "Attack",
-    description:
-      "The damage every swing lands. It is what tears farms down and what frees a Spirit from the pen.",
+    description: "The damage each swing does. It is what destroys farms and what frees a Spirit from the pen.",
     icon: "Icon_AttackDamageStat.png",
   },
   {
     name: "Attack Speed",
-    description: "How quickly those swings come. The faster they land, the sooner a farm gives way.",
+    description: "How often a unit swings. The faster it swings, the sooner a farm comes down.",
     icon: "Icon_AttackSpeedStat.png",
   },
   {
     name: "Armor",
-    description: "How much of each hit is shrugged off. The more you carry, the less the same swing hurts.",
+    description: "How much damage is taken off each hit. The more armor a unit has, the less damage it takes.",
     icon: "Icon_ArmorStat.png",
   },
   {
     name: "Movement Speed",
     description:
-      "How fast a unit crosses the terrain. It affects how quickly a unit can pursue or escape, while effects like mud and ice can slow or alter it.",
+      "How fast a unit moves across the terrain. It decides who catches up and who gets away, and effects like mud and ice change it.",
     icon: "Icon_MoveSpeedStat.png",
   },
 ];
@@ -299,19 +292,19 @@ export const STATS: Entry[] = [
 
 export const DAY_NIGHT_HEADING = "Day and Night";
 export const DAY_NIGHT_BODY =
-  "The round timer at the top of the screen turns from rooster to owl, and the field changes with it.";
+  "The round timer at the top of the screen turns from rooster to owl, and how far everyone sees changes with it.";
 
 export const DAY_NIGHT: Entry[] = [
-  { name: "Day", description: "The rooster's hours. Everyone sees at their full range.", icon: "TimerPanel_RoosterIcon.png" },
+  { name: "Day", description: "The timer shows the rooster. Everyone sees at their full range.", icon: "TimerPanel_RoosterIcon.png" },
   {
     name: "Night",
-    description: "The owl's hours. Every Sheep's sight draws in while wolf eyes stay sharp.",
+    description: "The timer shows the owl. Sheep cannot see as far while Wolves see just as well.",
     icon: "TimerPanel_OwlIcon.png",
   },
   {
     name: "Moonlight",
     description:
-      "This unit is empowered by the night. Every Wolf carries it from dusk to dawn, so the dark belongs to the pack.",
+      "This unit is stronger at night, dealing more damage and regenerating mana faster. Every Wolf has it from dusk to dawn, so the night favors the pack.",
     icon: "StatusEffect_Moonlight.png",
   },
 ];
@@ -364,7 +357,7 @@ export const WOLF_SPELLS: Entry[] = [
   },
   {
     name: "Target Sheep",
-    description: "Automatically target a nearby sheep for this units next attack.",
+    description: "Automatically targets a nearby Sheep for this unit's next attack.",
     icon: "Icon_TargetSheep.png",
   },
   {
@@ -381,7 +374,8 @@ export const WOLF_SPELLS: Entry[] = [
   },
   {
     name: "Snare Trap",
-    description: "Places a snare trap at the target location. Trapping an invisible unit reveals it.",
+    description:
+      "Places a snare trap at the target location. Trapping an invisible unit reveals it. An unsprung trap expires on its own.",
     icon: "Icon_SnareTrap.png",
   },
   {
@@ -422,7 +416,8 @@ export const MAGIC_FARM_SPELLS: Entry[] = [
   },
   {
     name: "Bloodlust",
-    description: "Drives an ally moving unit into a frenzy, increasing its attack and movement speed for the duration.",
+    description:
+      "Drives an ally into a frenzy, increasing its attack speed and movement speed for the duration. Works on anything that moves or attacks, a Mud Farm included.",
     icon: "Icon_Bloodlust.png",
   },
 ];
@@ -439,11 +434,19 @@ export const DESTROY_FARM: Entry = {
 /* -------------------------------------------------------------------------- */
 
 export const POTIONS: Entry[] = [
-  { name: "Mana Potion", description: "Arcane motes pour mana back into this unit.", icon: "Icon_ManaPotion.png" },
-  { name: "Speed Potion", description: "This unit is quickened, moving and striking faster.", icon: "Icon_SpeedPotion.png" },
+  {
+    name: "Mana Potion",
+    description: "Restores mana over a short duration. Consuming another refreshes the duration.",
+    icon: "Icon_ManaPotion.png",
+  },
+  {
+    name: "Speed Potion",
+    description: "Increases movement speed and attack speed for a short duration. Consuming another refreshes the duration.",
+    icon: "Icon_SpeedPotion.png",
+  },
   {
     name: "Strength Potion",
-    description: "This unit is swollen with strength, and its swings hit far harder.",
+    description: "Increases attack damage for a short duration. Consuming another refreshes the duration.",
     icon: "Icon_StrengthPotion.png",
   },
   {
@@ -472,43 +475,43 @@ export const POTIONS: Entry[] = [
 export const UPGRADES: Entry[] = [
   {
     name: "Attack Damage",
-    description: "The damage every swing lands. It is what tears farms down and what frees a Spirit from the pen.",
+    description: "The damage each swing does. It is what destroys farms and what frees a Spirit from the pen.",
     icon: "Icon_AttackDamageStat.png",
   },
   {
     name: "Attack Speed",
-    description: "How quickly those swings come. The faster they land, the sooner a farm gives way.",
+    description: "How often a unit swings. The faster it swings, the sooner a farm comes down.",
     icon: "Icon_AttackSpeedStat.png",
   },
   {
     name: "Movement Speed",
     description:
-      "How fast a unit crosses the terrain. It affects how quickly a unit can pursue or escape, while effects like mud and ice can slow or alter it.",
+      "How fast a unit moves across the terrain. It decides who catches up and who gets away, and effects like mud and ice change it.",
     icon: "Icon_MoveSpeedStat.png",
   },
   {
     name: "Mana Capacity",
-    description: "The fuel for spells. A deeper pool means more casts before you have to wait.",
+    description: "How much mana a unit can hold. More mana means more casts before you have to wait.",
     icon: "Icon_ManaCapacityStat.png",
   },
   {
     name: "Mana Regeneration",
-    description: "Mana refills on its own. The faster it comes back, the shorter the wait between casts.",
+    description: "How fast mana refills on its own. The faster it refills, the shorter the wait between casts.",
     icon: "Icon_ManaRegenStat.png",
   },
   {
     name: "Armor",
-    description: "How much of each hit is shrugged off. The more you carry, the less the same swing hurts.",
+    description: "How much damage is taken off each hit. The more armor a unit has, the less damage it takes.",
     icon: "Icon_ArmorStat.png",
   },
   {
     name: "Health Capacity",
-    description: "How much damage a unit takes before it falls. A deeper pool buys more time under fire.",
+    description: "How much damage a unit takes before it falls. More health means it lasts longer under attack.",
     icon: "Icon_HealthCapacityStat.png",
   },
   {
     name: "Health Regeneration",
-    description: "Health comes back on its own. The faster it returns, the less of the round you spend recovering.",
+    description: "How fast health comes back on its own. The faster it comes back, the sooner a unit recovers.",
     icon: "Icon_HealthRegenStat.png",
   },
 ];

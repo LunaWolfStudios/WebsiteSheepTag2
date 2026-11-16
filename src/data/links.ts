@@ -6,6 +6,7 @@ export const LINKS = {
     "https://store.steampowered.com/app/2151350/Sheep_Tag_2_Original_Soundtrack",
   kickstarter:
     "https://www.kickstarter.com/projects/lunawolfstudios/sheep-tag-2",
+  workshop: "https://steamcommunity.com/app/537680/workshop/",
   discord: "https://discord.gg/jNf5RsaZPp",
   homepage: "https://www.sheeptag2.com/",
   x: "https://x.com/sheeptag2",

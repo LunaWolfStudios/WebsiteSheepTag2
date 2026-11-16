@@ -15,7 +15,7 @@ const [opening, ...rest] = PEN_BODY;
 <GuidePage
   slug="spirits"
   title="Spirits — Sheep Tag 2 Guides"
-  description="Capture is a change of role, not the end of the round. A Spirit waits in the pen for an ally's swing."
+  description="A captured Sheep becomes a Spirit and waits in the pen until an ally saves it."
   intro={opening}
   bodyIntro
 >
@@ -25,13 +25,13 @@ const [opening, ...rest] = PEN_BODY;
     entries={SPIRIT_SPELLS}
     title="Spells"
     icon="AbilityPanel_AbilityIcon_Pressed.png"
-    intro="A Spirit still carries a command card, so it can keep helping the flock from the pen."
+    intro="A Spirit has spells of its own to help the flock from the pen."
   />
 
   <EntryGrid
     entries={shared}
     title="Basic Commands"
-    intro="A Spirit has nothing to swing, so it carries the movement commands and not Attack."
+    intro="A Spirit cannot attack, so it has every basic command except Attack."
     dense
   />
 

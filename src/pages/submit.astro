@@ -19,9 +19,8 @@ const libJson = JSON.stringify(
     <header class="submit-head">
       <h1>Terrain Submission</h1>
       <p class="sub" id="submit-sub">
-        Help grow the Sheep Tag 2 community by submitting your original terrain. Every terrain is
-        automatically validated before it can be submitted, helping us catch common issues early
-        and making the review process much faster.
+        Submit a terrain you made for the community library. Your file is checked automatically
+        before you can send it, which catches common problems and makes review faster.
       </p>
     </header>
 
@@ -85,13 +84,13 @@ const libJson = JSON.stringify(
             <p class="dz-limit">Maximum file size: 10 MB</p>
           </div>
           <div class="dz-summary" id="dz-summary" hidden>
-            <img id="dz-thumb" alt="Terrain map preview" width="96" height="96" hidden />
+            <img id="dz-thumb" alt="Terrain preview" width="96" height="96" hidden />
             <div class="dz-info">
               <p class="dz-file" id="dz-file"></p>
               <p class="dz-meta" id="dz-meta"></p>
               <p class="dz-desc" id="dz-desc"></p>
               <p class="dz-state" id="dz-state"></p>
-              <p class="dz-replace">Drop a new file here or click to replace it — or press ✕ to remove it.</p>
+              <p class="dz-replace">Drop a new file here or click to replace it. Press ✕ to remove it.</p>
             </div>
           </div>
           <p class="dz-drop-hint" aria-hidden="true">Drop your terrain here</p>
@@ -150,26 +149,19 @@ const libJson = JSON.stringify(
         <div class="progress-bar"></div>
       </div>
       <noscript>
-        <p class="panel-hint">JavaScript is required for automatic terrain validation — with it disabled, your file is submitted without pre-checks.</p>
+        <p class="panel-hint">Automatic terrain checks need JavaScript. Without it, your file is sent without being checked.</p>
       </noscript>
     </form>
 
     <script type="application/json" id="library-index" is:inline set:html={libJson} />
 
     <div class="success-panel" id="success-panel" hidden>
-      <h2>🎉 Thank You!</h2>
-      <p>Thank you for contributing to the Sheep Tag 2 community!</p>
-      <p>Your terrain has been successfully submitted and is now awaiting review.</p>
+      <h2>Terrain submitted</h2>
+      <p>Thank you for sharing your terrain. It is now waiting for review.</p>
       <p>
-        Our team will validate and review your submission as soon as possible. If we have any
-        questions or need additional information, we'll contact you using the email address you
-        provided.
+        We will review it as soon as we can. If we have questions, we will email you at the
+        address you gave.
       </p>
-      <p>
-        We genuinely appreciate everyone who helps expand the collection of community-created
-        terrains. Your creativity helps make Sheep Tag 2 even more fun for everyone.
-      </p>
-      <p class="success-sign"><strong>🐑 Happy tagging! 🐺</strong></p>
       <a href="/terrains" class="btn btn--secondary">Browse Terrains</a>
     </div>
   </section>
@@ -593,9 +585,6 @@ const libJson = JSON.stringify(
   .success-panel p {
     color: var(--st-ink-muted);
     line-height: 1.65;
-  }
-  .success-sign {
-    color: var(--st-ink) !important;
   }
   .success-panel .btn {
     align-self: flex-start;

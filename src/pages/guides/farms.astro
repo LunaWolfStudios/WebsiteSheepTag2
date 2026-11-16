@@ -38,14 +38,14 @@ const upgraded = withText(UPGRADE_FARMS);
 <GuidePage
   slug="farms"
   title="Farms — Sheep Tag 2 Guides"
-  description="The farms of Sheep Tag 2, from the humble Straw Farm to the Magic Farm, and what each one does."
+  description="Every farm in Sheep Tag 2, from the Straw Farm to the Magic Farm, and what each one does."
   intro="Farms are the whole defense. Build them into dense grids that stall the pack, destroy one when it boxes you in, and build on top of yourself to hop over the farms in your way."
 >
   <EntryGrid
     entries={buildable}
     title="Build menu"
     icon="AbilityPanel_BuildIcon_Pressed.png"
-    intro="What a Sheep can raise out of thin air."
+    intro="The farms a Sheep can build."
   />
 
   <Panel title="Upgrade paths" icon="UI_Icon_ArrowRight.png" deck={UPGRADED_FARMS_INTRO}>
@@ -56,10 +56,10 @@ const upgraded = withText(UPGRADE_FARMS);
     entries={upgraded}
     title="Upgraded Farms"
     icon="Icon_MagicFarm.png"
-    intro="Trick and hidden farms no build menu offers. Each one grows out of a farm already standing on the field."
+    intro="These farms are not in the build menu. Each one comes from upgrading a farm that is already built."
   />
 
-  <Panel title="Taking one back down">
+  <Panel title="Destroying a farm">
     <IconRows entries={[DESTROY_FARM]} />
   </Panel>
 

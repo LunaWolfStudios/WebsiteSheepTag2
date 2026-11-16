@@ -156,10 +156,10 @@ async function inflateRaw(data: Uint8Array, limit: number): Promise<Uint8Array> 
 async function unzip(bytes: Uint8Array): Promise<Map<string, Uint8Array>> {
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
   if (bytes.length < 22 || view.getUint32(0, true) !== LOCAL_SIG) {
-    throw new St2Error("This file isn't a Sheep Tag 2 map archive.");
+    throw new St2Error("This file is not a Sheep Tag 2 terrain.");
   }
   const eocd = findEocd(view);
-  if (eocd < 0) throw new St2Error("The archive is damaged — its directory is missing.");
+  if (eocd < 0) throw new St2Error("The archive is damaged. Its directory is missing.");
 
   const count = view.getUint16(eocd + 10, true);
   let at = view.getUint32(eocd + 16, true);
@@ -171,7 +171,7 @@ async function unzip(bytes: Uint8Array): Promise<Map<string, Uint8Array>> {
   let inflated = 0;
   for (let i = 0; i < count; i++) {
     if (at + 46 > bytes.length || view.getUint32(at, true) !== CENTRAL_SIG) {
-      throw new St2Error("The archive is damaged — its directory is unreadable.");
+      throw new St2Error("The archive is damaged. Its directory cannot be read.");
     }
     const method = view.getUint16(at + 10, true);
     const compressedSize = view.getUint32(at + 20, true);
@@ -183,12 +183,12 @@ async function unzip(bytes: Uint8Array): Promise<Map<string, Uint8Array>> {
     const name = decoder.decode(bytes.subarray(at + 46, at + 46 + nameLength));
     at += 46 + nameLength + extraLength + commentLength;
     if (at > bytes.length) {
-      throw new St2Error("The archive is damaged — its directory runs past the end of the file.");
+      throw new St2Error("The archive is damaged. Its directory runs past the end of the file.");
     }
 
     if (name.includes("/") || name.includes("\\")) {
       throw new St2Error(
-        `The map's files must sit at the top level of the archive — "${name}" is inside a folder. Re-save the map from the level editor instead of zipping it yourself.`,
+        `"${name}" is inside a folder, but a terrain's files must be at the top of the archive. Save the terrain from the level editor instead of zipping it yourself.`,
       );
     }
     if (!(ENTRY_NAMES as readonly string[]).includes(name)) {
@@ -199,15 +199,15 @@ async function unzip(bytes: Uint8Array): Promise<Map<string, Uint8Array>> {
     }
     inflated += uncompressedSize;
     if (inflated > MAX_INFLATED_BYTES) {
-      throw new St2Error("The archive expands to far more data than a map ever should.");
+      throw new St2Error("The archive unpacks to more data than any terrain needs.");
     }
     if (localAt + 30 > bytes.length || view.getUint32(localAt, true) !== LOCAL_SIG) {
-      throw new St2Error(`The archive is damaged — "${name}" is unreadable.`);
+      throw new St2Error(`The archive is damaged. "${name}" cannot be read.`);
     }
     const dataAt =
       localAt + 30 + view.getUint16(localAt + 26, true) + view.getUint16(localAt + 28, true);
     if (dataAt + compressedSize > bytes.length) {
-      throw new St2Error(`The archive is truncated — "${name}" is incomplete.`);
+      throw new St2Error(`The archive ends early, so "${name}" is incomplete.`);
     }
     const raw = bytes.subarray(dataAt, dataAt + compressedSize);
 
@@ -215,12 +215,12 @@ async function unzip(bytes: Uint8Array): Promise<Map<string, Uint8Array>> {
       throw new St2Error(`"${name}" uses an unsupported compression method.`);
     }
     if (method === STORED && compressedSize !== uncompressedSize) {
-      throw new St2Error(`The archive is damaged — "${name}" has inconsistent sizes.`);
+      throw new St2Error(`The archive is damaged. "${name}" has mismatched sizes.`);
     }
     try {
       entries.set(name, method === STORED ? raw : await inflateRaw(raw, uncompressedSize));
     } catch {
-      throw new St2Error(`The archive is damaged — "${name}" could not be decompressed.`);
+      throw new St2Error(`The archive is damaged. "${name}" could not be unpacked.`);
     }
   }
   return entries;
@@ -294,11 +294,11 @@ export function checkMetadata(m: MapMetadata): string | null {
   for (const field of ["Name", "Author", "Version"] as const) {
     const value = m[field];
     if (value === undefined || value === null || String(value).trim() === "") {
-      return `The map's ${field} is missing — set it in the level editor before sharing.`;
+      return `The terrain has no ${field}. Set it in the level editor before sharing.`;
     }
   }
   if (!("Description" in m)) {
-    return "The map's Description is missing (an empty description is fine).";
+    return "The terrain has no Description field. An empty description is fine.";
   }
   return null;
 }
@@ -309,10 +309,10 @@ export function checkTerrain(archive: St2Archive): string | null {
   const length = Number(archive.terrain.Length);
   const tiles = archive.terrain.TileData;
   if (!Number.isFinite(width) || !Number.isFinite(length) || width <= 0 || length <= 0) {
-    return "The map has no usable dimensions.";
+    return "The terrain has no valid width and length.";
   }
   if (!Array.isArray(tiles) || tiles.length !== width * length) {
-    return "The map's tile data is incomplete.";
+    return "The terrain's tile data is incomplete.";
   }
   return null;
 }

@@ -223,9 +223,18 @@ const jsonLd = {
 
         <section id="features" aria-labelledby="features-title">
           <h2 id="features-title">Features</h2>
-          <ul class="features-list">
-            {FEATURES.map((f) => <li>{f}</li>)}
-          </ul>
+          <div class="feature-groups">
+            {
+              FEATURES.map((group) => (
+                <div class="feature-group">
+                  <h3>{group.heading}</h3>
+                  <ul class="features-list">
+                    {group.items.map((f) => <li>{f}</li>)}
+                  </ul>
+                </div>
+              ))
+            }
+          </div>
         </section>
 
         <section id="videos" aria-labelledby="videos-title">
@@ -253,8 +262,8 @@ const jsonLd = {
         <section id="images" aria-labelledby="images-title">
           <h2 id="images-title">Images</h2>
           <p>
-            Screenshots are captured in-engine at 2560×1440. Click any image for the untouched
-            original, or grab everything at once.
+            Screenshots are captured in game at 2560×1440. Click an image to open the full size
+            original, or use the button below to download them all.
           </p>
           <div class="dl-row">
             <a class="btn btn--primary btn--sm" href={pressZip.href} download>
@@ -310,7 +319,7 @@ const jsonLd = {
             </a>
           </div>
           <p class="logo-note">
-            Need Luna Wolf Studios logos too? They're in the <a href={LWS_PRESSKIT} target="_blank" rel="noopener">Luna Wolf Studios press kit</a>.
+            Studio logos are in the <a href={LWS_PRESSKIT} target="_blank" rel="noopener">Luna Wolf Studios press kit</a>.
           </p>
         </section>
 
@@ -374,8 +383,8 @@ const jsonLd = {
             }
           </div>
           <p class="credits-note">
-            …and the Sheep Tag community, whose terrains, feedback, and twenty-plus years of play
-            shaped everything above.
+            Thanks also to the Sheep Tag community for more than twenty years of play, terrains,
+            and feedback.
           </p>
         </section>
 
@@ -386,7 +395,7 @@ const jsonLd = {
             <dd><a href={`mailto:${PRESS_EMAIL}`}>{PRESS_EMAIL}</a></dd>
             <dt>Beta access</dt>
             <dd>
-              The closed beta is open on request, first come, first served, while spots last. <a href={`mailto:${PRESS_EMAIL}`}>Email us</a> or ask in <a href={LINKS.discord} target="_blank" rel="noopener">Discord</a>.
+              The closed beta is open on request. <a href={`mailto:${PRESS_EMAIL}`}>Email us</a> or ask in <a href={LINKS.discord} target="_blank" rel="noopener">Discord</a>.
             </dd>
             <dt>Community</dt>
             <dd><a href={LINKS.discord} target="_blank" rel="noopener">Discord</a></dd>
@@ -517,11 +526,22 @@ const jsonLd = {
   }
 
   /* Features */
+  .feature-groups {
+    columns: 2;
+    column-gap: 2.5rem;
+  }
+  .feature-group {
+    break-inside: avoid;
+    margin-bottom: 1.5rem;
+  }
+  .feature-group h3 {
+    margin-bottom: 0.55rem;
+    font-size: 1.1rem;
+    color: var(--st-ink);
+  }
   .features-list {
     margin: 0;
     padding-left: 1.15rem;
-    columns: 2;
-    column-gap: 2.5rem;
     color: var(--st-ink-muted);
   }
   .features-list li {
@@ -737,7 +757,7 @@ const jsonLd = {
     }
   }
   @media (max-width: 700px) {
-    .features-list {
+    .feature-groups {
       columns: 1;
     }
     .logo-row {

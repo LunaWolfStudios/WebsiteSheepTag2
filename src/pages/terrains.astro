@@ -44,16 +44,16 @@ const osPaths = [
 
 <BaseLayout
   title="Community Terrains — Sheep Tag 2"
-  description="Create and share custom maps for Sheep Tag 2 with the built-in level editor — then browse, download, and play what the community has made."
+  description="Browse and download free community terrains for Sheep Tag 2, made with the game's built-in level editor."
 >
   <section class="wrap terrains">
     <header class="terrains-head">
       <div>
         <h1>Community Terrains</h1>
         <p class="sub">
-          Sheep Tag 2 has a built-in level editor — because we're map-makers too. Design your own
-          battlegrounds and share them with everyone, or download a community creation to play.
-          <span class="count-line"><span id="terrain-count">{terrains.length}</span> terrains and counting.</span>
+          Sheep Tag 2 has a built-in level editor. Make your own terrains and share them here, or
+          download terrains other players have made.
+          <span class="count-line"><span id="terrain-count">{terrains.length}</span> terrains shared so far.</span>
         </p>
       </div>
       <div class="terrains-actions">
@@ -87,7 +87,7 @@ const osPaths = [
       </div>
       <label class="sel-field">
         <span>Size</span>
-        <select id="terrain-size" aria-label="Filter by map size">
+        <select id="terrain-size" aria-label="Filter by terrain size">
           <option value="any" selected>Any size</option>
           {sizeOptions.map((s) => <option value={s}>{s}</option>)}
         </select>
@@ -131,7 +131,7 @@ const osPaths = [
           <article class="tcard" data-slug={t.slug}>
             <div class="tcard-thumb">
               {t.thumb ? (
-                <img src={t.thumb} alt={`${t.name} map preview`} width="96" height="96" loading="lazy" />
+                <img src={t.thumb} alt={`${t.name} terrain preview`} width="96" height="96" loading="lazy" />
               ) : (
                 <span class="noimg" aria-hidden="true" />
               )}
@@ -162,7 +162,7 @@ const osPaths = [
         href="https://creativecommons.org/licenses/by/4.0/"
         target="_blank"
         rel="noopener"
-      >CC BY 4.0</a>&#32;&mdash; please credit the author.
+      >CC BY 4.0</a>. Please credit the author.
     </p>
   </section>
 
@@ -200,7 +200,7 @@ const osPaths = [
         <Icon name="close" size={24} />
       </button>
       <h2>Where do I put downloaded terrains?</h2>
-      <p>Place downloaded terrain <code>.st2</code> files in your Sheep Tag 2 custom data folder (it differs per operating system):</p>
+      <p>Put downloaded <code>.st2</code> terrain files in the Sheep Tag 2 custom folder for your operating system:</p>
       <ul class="os-list">
         {
           osPaths.map((p) => (
@@ -216,8 +216,8 @@ const osPaths = [
         }
       </ul>
       <p class="help-tip">
-        Tip: on Windows the <code>AppData</code> folder and on macOS the <code>Library</code> folder are
-        hidden by default — you may need to enable “show hidden files.”
+        Tip: the <code>AppData</code> folder on Windows and the <code>Library</code> folder on macOS are
+        hidden by default. You may need to turn on “show hidden files.”
       </p>
     </div>
   </dialog>

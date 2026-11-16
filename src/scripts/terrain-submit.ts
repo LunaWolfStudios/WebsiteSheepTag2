@@ -201,7 +201,7 @@ function initSubmit(form: HTMLFormElement) {
     const fail = (id: CheckId, msg: string) => {
       setCheck(id, "fail", msg);
       dzState.classList.add("bad");
-      dzState.textContent = "Fix the issue below — press ✕ and upload the corrected file.";
+      dzState.textContent = "Fix the problem below, then press ✕ and upload the fixed file.";
       gate();
     };
 
@@ -258,13 +258,13 @@ function initSubmit(form: HTMLFormElement) {
       authentic = await verifyContentHash(archive);
     } catch {
       if (stale()) return;
-      return fail("v-hash", "This map's contents couldn't be verified in your browser.");
+      return fail("v-hash", "This terrain could not be checked in your browser.");
     }
     if (stale()) return;
     if (!authentic)
       return fail(
         "v-hash",
-        "This map's contents don't match the signature the level editor saved with it — it was changed outside the editor. Re-save it from the level editor and try again.",
+        "This terrain was changed outside the level editor. Open it in the level editor, save it, and upload it again.",
       );
     setCheck("v-hash", "pass");
 
@@ -272,13 +272,13 @@ function initSubmit(form: HTMLFormElement) {
 
     // Duplicate detection: the content hash identifies the exact map.
     if (library.includes(contentHash)) {
-      fail("v-dupe", "This map has already been uploaded — ");
+      fail("v-dupe", "This terrain is already in the library. ");
       // Link straight to the existing copy (same window)
       const msgEl = $("v-dupe")?.querySelector(".v-msg") as HTMLElement | null;
       if (msgEl) {
         const a = document.createElement("a");
         a.href = `/terrains?id=${contentHash}`;
-        a.textContent = "view it in the library";
+        a.textContent = "View it";
         msgEl.append(a, document.createTextNode("."));
       }
       return;

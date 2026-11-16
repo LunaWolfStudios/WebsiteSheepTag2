@@ -87,7 +87,7 @@ function initTerrains(view: HTMLElement) {
     syncUrl(t.id);
     const img = document.getElementById("detail-img") as HTMLImageElement;
     img.src = t.thumb ?? "";
-    img.alt = `${t.name} map preview`;
+    img.alt = `${t.name} terrain preview`;
     img.style.display = t.thumb ? "block" : "none";
     (document.getElementById("detail-name") as HTMLElement).textContent = t.name;
     (document.getElementById("detail-by") as HTMLElement).textContent = t.author ? `by ${t.author}` : "";
@@ -136,7 +136,7 @@ function initTerrains(view: HTMLElement) {
     card.className = "tcard";
     card.tabIndex = 0;
     card.setAttribute("role", "button");
-    card.setAttribute("aria-label", `${t.name} by ${t.author} — view details`);
+    card.setAttribute("aria-label", `${t.name} by ${t.author}. View details`);
     card.style.animationDelay = `${Math.min(index * 28, 340)}ms`;
     card.innerHTML = `
       <div class="tcard-thumb"></div>
@@ -151,7 +151,7 @@ function initTerrains(view: HTMLElement) {
     if (t.thumb) {
       const img = document.createElement("img");
       img.src = t.thumb;
-      img.alt = `${t.name} map preview`;
+      img.alt = `${t.name} terrain preview`;
       img.width = 96;
       img.height = 96;
       img.loading = "lazy";
@@ -173,13 +173,13 @@ function initTerrains(view: HTMLElement) {
     const table = document.createElement("table");
     table.className = "terrain-table";
     table.innerHTML =
-      '<thead><tr><th class="col-thumb"><span class="visually-hidden">Map preview</span></th><th>Name</th><th>Author</th><th>Size</th><th>Tileset</th><th>Version</th></tr></thead>';
+      '<thead><tr><th class="col-thumb"><span class="visually-hidden">Terrain preview</span></th><th>Name</th><th>Author</th><th>Size</th><th>Tileset</th><th>Version</th></tr></thead>';
     const tbody = document.createElement("tbody");
     items.forEach((t, i) => {
       const tr = document.createElement("tr");
       tr.tabIndex = 0;
       tr.setAttribute("role", "button");
-      tr.setAttribute("aria-label", `${t.name} by ${t.author} — view details`);
+      tr.setAttribute("aria-label", `${t.name} by ${t.author}. View details`);
       tr.style.animationDelay = `${Math.min(i * 16, 320)}ms`;
       tr.innerHTML =
         '<td class="col-thumb"></td><td class="t-name"></td><td class="t-author"></td><td class="t-size"></td><td class="t-tileset"></td><td class="t-ver"></td>';
